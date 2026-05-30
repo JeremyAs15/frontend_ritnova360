@@ -1,0 +1,102 @@
+/* Variables de color */
+:root {
+  --input-bg:           #fff3ec;   /* fondo durazno muy suave        */
+  --input-border:       #ffcba4;   /* borde naranja claro            */
+  --input-border-focus: #f97316;   /* naranja vivo al enfocar        */
+  --input-text:         #1a1a1a;
+  --input-placeholder:  #374151;
+  --input-icon-color:   #f97316;
+  --input-label-color:  #374151;
+  --input-error-color:  #dc2626;
+  --input-error-bg:     #fff1f1;
+  --input-error-border: #fca5a5;
+  --input-radius:       10px;
+  --input-height:       48px;
+}
+
+/* Contenedor */
+.input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+/* Etiqueta */
+.input-field__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--input-label-color);
+  letter-spacing: 0.01em;
+}
+
+/* Wrapper */
+.input-field__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Ícono */
+.input-field__icon {
+  position: absolute;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  color: var(--input-icon-color);
+  font-size: 1rem;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+/* Input */
+.input-field__input {
+  width: 100%;
+  height: var(--input-height);
+  padding: 0 16px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--input-radius);
+  font-size: 0.95rem;
+  color: var(--input-text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.input-field__input--with-icon {
+  padding-left: 42px;
+}
+
+.input-field__input::placeholder {
+  color: var(--input-placeholder);
+}
+
+/* Focus */
+.input-field__input:focus {
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  background: #ffffff;
+}
+
+.input-field__input:focus + .input-field__icon,
+.input-field__wrapper:focus-within .input-field__icon {
+  color: var(--input-border-focus);
+}
+
+/* Disabled */
+.input-field--disabled .input-field__input {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Estado de error */
+.input-field--error .input-field__input {
+  border-color: var(--input-error-border);
+  background: var(--input-error-bg);
+}
+
+.input-field__error {
+  font-size: 0.78rem;
+  color: var(--input-error-color);
+  padding-left: 2px;
+}
