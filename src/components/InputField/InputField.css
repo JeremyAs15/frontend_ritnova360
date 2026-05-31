@@ -1,11 +1,11 @@
 /* Variables de color */
 :root {
-  --input-bg:           #fff3ec;   /* fondo durazno muy suave        */
-  --input-border:       #ffcba4;   /* borde naranja claro            */
-  --input-border-focus: #f97316;   /* naranja vivo al enfocar        */
+  --input-bg:           #fff3ec;
+  --input-border:       #ffcba4;
+  --input-border-focus: #f97316;
   --input-text:         #1a1a1a;
   --input-placeholder:  #374151;
-  --input-icon-color:   #f97316;
+  --input-icon-color:   #374151;
   --input-label-color:  #374151;
   --input-error-color:  #dc2626;
   --input-error-bg:     #fff1f1;
@@ -71,7 +71,6 @@
   color: var(--input-placeholder);
 }
 
-/* Focus */
 .input-field__input:focus {
   border-color: var(--input-border-focus);
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
@@ -83,7 +82,6 @@
   color: var(--input-border-focus);
 }
 
-/* Disabled */
 .input-field--disabled .input-field__input {
   opacity: 0.55;
   cursor: not-allowed;
