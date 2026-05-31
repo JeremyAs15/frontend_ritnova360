@@ -1,0 +1,96 @@
+.auth-layout {
+  display: grid;
+  grid-template-columns: 55% 45%;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Panel izquierdo (imagen) */
+.auth-layout__panel {
+  position: relative;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: flex-end;
+  padding: 48px 40px;
+  overflow: hidden;
+}
+
+.auth-layout__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(249, 115, 22, 0.4) 0%,
+    rgba(194, 24, 91, 0.8) 100%
+  );
+}
+
+.auth-layout__tagline {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+}
+
+.auth-layout__tagline h2 {
+  font-family: 'Anuphan', sans-serif;
+  font-weight: 600;
+  font-size: 60px;
+  line-height: 1.15;
+  margin: 0 0 14px;
+  max-width: 600px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.auth-layout__tagline p {
+  font-family: 'Anuphan', sans-serif;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 600px;
+  margin: 0;
+}
+
+/* Panel derecho (formulario) */
+.auth-layout__form-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 56px;
+  background: #ffffff;
+  gap: 24px;
+  overflow-y: auto;
+}
+
+/* Logo */
+.auth-layout__logo {
+  align-self: flex-start;
+}
+
+.auth-layout__logo img {
+  height: 48px;
+  width: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-layout__panel {
+    min-height: 220px;
+    padding: 32px 24px;
+  }
+
+  .auth-layout__tagline h2 {
+    font-size: 1.6rem;
+  }
+
+  .auth-layout__form-area {
+    padding: 32px 24px;
+  }
+}
