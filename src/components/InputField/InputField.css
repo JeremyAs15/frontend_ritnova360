@@ -1,15 +1,15 @@
 /* Variables de color */
 :root {
-  --input-bg:           #fff3ec;
-  --input-border:       #ffcba4;
+  --input-bg:           #fce3c6;
+  --input-border:       #F78F1E;
   --input-border-focus: #f97316;
   --input-text:         #1a1a1a;
   --input-placeholder:  #374151;
   --input-icon-color:   #374151;
   --input-label-color:  #374151;
   --input-error-color:  #dc2626;
-  --input-error-bg:     #fff1f1;
-  --input-error-border: #fca5a5;
+  --input-error-bg:     #ffd9ad;
+  --input-error-border: #F78F1E;
   --input-radius:       10px;
   --input-height:       48px;
 }
