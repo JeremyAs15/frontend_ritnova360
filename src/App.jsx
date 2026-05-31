@@ -1,7 +1,7 @@
-import SignUpPage from './components/InputField/InputField'
+import Router from './app/router/index';
 
 function App() {
-  return <SignUpPage />
+  return <Router />;
 }
 
-export default App
+export default App;
