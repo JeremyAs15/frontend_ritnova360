@@ -1,0 +1,162 @@
+import { useState } from 'react';
+import InputField from '../InputField/InputField';
+import PasswordInput from '../PasswordInput/PasswordInput';
+import './SignUpForm.css';
+
+/**
+ * AuthForm
+ * Formulario de registro.
+ * Props:
+ *  - onSubmit  {function}  Recibe el objeto { nombres, apellidos, email, password }
+ *  - onLogin   {function}  Navegar al login (link "Inicia sesión")
+ */
+function AuthForm({ onSubmit, onLogin }) {
+  const [form, setForm] = useState({
+    nombres: '',
+    apellidos: '',
+    email: '',
+    password: '',
+  });
+
+  const [accepted, setAccepted] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const userIcon = (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+
+  const emailIcon = (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+      <polyline points="22,6 12,13 2,6" />
+    </svg>
+  );
+
+  const handleChange = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!form.nombres.trim())   newErrors.nombres   = 'El nombre es obligatorio';
+    if (!form.apellidos.trim()) newErrors.apellidos = 'El apellido es obligatorio';
+    if (!form.email.includes('@')) newErrors.email  = 'Correo no válido';
+    if (form.password.length < 6)  newErrors.password = 'Mínimo 6 caracteres';
+    if (!accepted) newErrors.terms = 'Debes aceptar los términos';
+    return newErrors;
+  };
+
+  const handleSubmit = () => {
+    const newErrors = validate();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    onSubmit?.(form);
+  };
+
+  /* Google icon */
+  const GoogleIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 48 48">
+      <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z" />
+      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 19 13 24 13c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.2 0-9.6-3-11.3-7.4l-6.6 4.9C9.8 39.8 16.4 44 24 44z" />
+      <path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41 35.1 44 30 44 24c0-1.3-.1-2.7-.4-4z" />
+    </svg>
+  );
+
+  return (
+    <div className="auth-form">
+      <h1 className="auth-form__title">¡Baila a tu ritmo hoy!</h1>
+      <p className="auth-form__subtitle">
+        Crea tu cuenta para acceder a clases exclusivas y aprender con los mejores.
+      </p>
+
+      <div className="auth-form__row">
+        <InputField
+          label="Nombres"
+          value={form.nombres}
+          onChange={handleChange('nombres')}
+          placeholder="Luisa María"
+          icon={userIcon}
+          error={errors.nombres}
+        />
+        <InputField
+          label="Apellidos"
+          value={form.apellidos}
+          onChange={handleChange('apellidos')}
+          placeholder="Martínez"
+          icon={userIcon}
+          error={errors.apellidos}
+        />
+      </div>
+
+      <InputField
+        label="Correo electrónico"
+        type="email"
+        value={form.email}
+        onChange={handleChange('email')}
+        placeholder="luisa.martinez@gmail.com"
+        icon={emailIcon}
+        error={errors.email}
+      />
+
+      <PasswordInput
+        label="Contraseña"
+        value={form.password}
+        onChange={handleChange('password')}
+        error={errors.password}
+      />
+
+      <div className={`auth-form__terms ${errors.terms ? 'auth-form__terms--error' : ''}`}>
+        <input
+          id="terms"
+          type="checkbox"
+          checked={accepted}
+          onChange={(e) => {
+            setAccepted(e.target.checked);
+            if (errors.terms) setErrors((prev) => ({ ...prev, terms: '' }));
+          }}
+          className="auth-form__checkbox"
+        />
+        <label htmlFor="terms" className="auth-form__terms-label">
+          Acepto los{' '}
+          <a href="#" className="auth-form__link">términos y condiciones</a>
+          {' '}y la política de privacidad de la academia
+        </label>
+      </div>
+      {errors.terms && <span className="auth-form__terms-error">{errors.terms}</span>}
+
+      {/* Botón principal */}
+      <button className="auth-form__submit" onClick={handleSubmit}>
+        Crear cuenta <span>→</span>
+      </button>
+
+      {/* Divider */}
+      <div className="auth-form__divider">
+        <span />
+        <p>o regístrate con</p>
+        <span />
+      </div>
+
+      {/* Google */}
+      <button className="auth-form__google">
+        <GoogleIcon /> Google
+      </button>
+
+      {/* Footer */}
+      <p className="auth-form__footer">
+        ¿Ya tienes cuenta?{' '}
+        <button className="auth-form__link-btn" onClick={onLogin}>
+          Inicia sesión
+        </button>
+      </p>
+    </div>
+  );
+}
+
+export default AuthForm;
