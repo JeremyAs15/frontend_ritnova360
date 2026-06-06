@@ -16,6 +16,7 @@ function AuthForm({ onSubmit, onLogin }) {
     apellidos: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
 
   const [accepted, setAccepted] = useState(false);
@@ -110,6 +111,13 @@ function AuthForm({ onSubmit, onLogin }) {
         value={form.password}
         onChange={handleChange('password')}
         error={errors.password}
+      />
+
+      <PasswordInput
+        label="Confirmar contraseña"
+        value={form.confirmPassword}
+        onChange={handleChange('confirmPassword')}
+        error={errors.confirmPassword}
       />
 
       <div className={`auth-form__terms ${errors.terms ? 'auth-form__terms--error' : ''}`}>
