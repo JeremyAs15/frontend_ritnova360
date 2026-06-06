@@ -23,6 +23,8 @@ function AuthForm({ onSubmit, onLogin }) {
   const [accepted, setAccepted] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const [serverStatus, setServerStatus] = useState({ loading: false, error: null, success: null });
+
   const userIcon = (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -44,21 +46,54 @@ function AuthForm({ onSubmit, onLogin }) {
 
   const validate = () => {
     const newErrors = {};
-    if (!form.nombres.trim())   newErrors.nombres   = 'El nombre es obligatorio';
+    if (!form.nombres.trim()) newErrors.nombres = 'El nombre es obligatorio';
     if (!form.apellidos.trim()) newErrors.apellidos = 'El apellido es obligatorio';
-    if (!form.email.includes('@')) newErrors.email  = 'Correo no válido';
-    if (form.password.length < 6)  newErrors.password = 'Mínimo 6 caracteres';
+    if (!form.email.includes('@')) newErrors.email = 'Correo no válido';
+    if (form.password.length < 6) newErrors.password = 'Mínimo 6 caracteres';
     if (!accepted) newErrors.terms = 'Debes aceptar los términos';
     return newErrors;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    onSubmit?.(form);
+
+    setServerStatus({ loading: true, error: null, success: null });
+
+    try {
+      const response = await fetch('http://localhost:8000/api/users/register/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: form.nombres,
+          last_name: form.apellidos,
+          email: form.email,
+          password: form.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setServerStatus({ loading: false, error: null, success: '¡Cuenta creada con éxito! Ya puedes iniciar sesión.' });
+        // Limpiamos el formulario
+        setForm({ nombres: '', apellidos: '', email: '', password: '' });
+        setAccepted(false);
+        // Si el componente padre necesita saber que se registró, lo llamamos
+        onSubmit?.(form);
+      } else {
+        // Extraer mensajes de error de Django (ej. "El correo ya existe")
+        const errorMessages = Object.values(data).flat().join(' | ');
+        setServerStatus({ loading: false, error: errorMessages, success: null });
+      }
+    } catch (err) {
+      setServerStatus({ loading: false, error: 'No se pudo conectar con el servidor de la academia.', success: null });
+    }
   };
 
   /* Google icon */
@@ -77,6 +112,18 @@ function AuthForm({ onSubmit, onLogin }) {
       <p className="form__subtitle">
         Crea tu cuenta para acceder a clases exclusivas y aprender con los mejores.
       </p>
+
+      {/* NUEVO: Contenedores para mensajes del servidor */}
+      {serverStatus.error && (
+        <div style={{ color: '#d32f2f', backgroundColor: '#ffebee', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px', border: '1px solid #ef9a9a' }}>
+          {serverStatus.error}
+        </div>
+      )}
+      {serverStatus.success && (
+        <div style={{ color: '#2e7d32', backgroundColor: '#e8f5e9', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px', border: '1px solid #a5d6a7' }}>
+          {serverStatus.success}
+        </div>
+      )}
 
       <div className="form__row">
         <InputField
@@ -140,9 +187,14 @@ function AuthForm({ onSubmit, onLogin }) {
       </div>
       {errors.terms && <span className="form__terms-error">{errors.terms}</span>}
 
-      {/* Botón principal */}
-      <button className="form__submit" onClick={handleSubmit}>
-        Crear cuenta <span>→</span>
+      {/* MODIFICADO: Botón principal deshabilitado mientras carga */}
+      <button
+        className="form__submit"
+        onClick={handleSubmit}
+        disabled={serverStatus.loading}
+        style={{ opacity: serverStatus.loading ? 0.7 : 1 }}
+      >
+        {serverStatus.loading ? 'Creando cuenta...' : <>Crear cuenta <span>→</span></>}
       </button>
 
       {/* Divider */}
