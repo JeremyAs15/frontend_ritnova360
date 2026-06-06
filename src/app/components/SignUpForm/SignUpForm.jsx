@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import InputField from '../InputField/InputField';
 import PasswordInput from '../PasswordInput/PasswordInput';
+import '../../styles/forms.css';
 import './SignUpForm.css';
 
 /**
@@ -71,13 +72,13 @@ function AuthForm({ onSubmit, onLogin }) {
   );
 
   return (
-    <div className="auth-form">
-      <h1 className="auth-form__title">¡Baila a tu ritmo hoy!</h1>
-      <p className="auth-form__subtitle">
+    <div className="form">
+      <h1 className="form__title">¡Baila a tu ritmo hoy!</h1>
+      <p className="form__subtitle">
         Crea tu cuenta para acceder a clases exclusivas y aprender con los mejores.
       </p>
 
-      <div className="auth-form__row">
+      <div className="form__row">
         <InputField
           label="Nombres"
           value={form.nombres}
@@ -120,7 +121,7 @@ function AuthForm({ onSubmit, onLogin }) {
         error={errors.confirmPassword}
       />
 
-      <div className={`auth-form__terms ${errors.terms ? 'auth-form__terms--error' : ''}`}>
+      <div className={`form__terms ${errors.terms ? 'form__terms--error' : ''}`}>
         <input
           id="terms"
           type="checkbox"
@@ -129,37 +130,37 @@ function AuthForm({ onSubmit, onLogin }) {
             setAccepted(e.target.checked);
             if (errors.terms) setErrors((prev) => ({ ...prev, terms: '' }));
           }}
-          className="auth-form__checkbox"
+          className="form__checkbox"
         />
-        <label htmlFor="terms" className="auth-form__terms-label">
+        <label htmlFor="terms" className="form__terms-label">
           Acepto los{' '}
-          <a href="#" className="auth-form__link">términos y condiciones</a>
+          <a href="#" className="form__link">términos y condiciones</a>
           {' '}y la política de privacidad de la academia
         </label>
       </div>
-      {errors.terms && <span className="auth-form__terms-error">{errors.terms}</span>}
+      {errors.terms && <span className="form__terms-error">{errors.terms}</span>}
 
       {/* Botón principal */}
-      <button className="auth-form__submit" onClick={handleSubmit}>
+      <button className="form__submit" onClick={handleSubmit}>
         Crear cuenta <span>→</span>
       </button>
 
       {/* Divider */}
-      <div className="auth-form__divider">
+      <div className="form__divider">
         <span />
         <p>o regístrate con</p>
         <span />
       </div>
 
       {/* Google */}
-      <button className="auth-form__google">
+      <button className="form__google">
         <GoogleIcon /> Google
       </button>
 
       {/* Footer */}
-      <p className="auth-form__footer">
+      <p className="form__footer">
         ¿Ya tienes cuenta?{' '}
-        <button className="auth-form__link-btn" onClick={onLogin}>
+        <button className="form__link-btn" onClick={onLogin}>
           Inicia sesión
         </button>
       </p>
