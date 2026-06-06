@@ -1,3 +1,5 @@
+import { useState } from 'react'; 
+import { useNavigate } from 'react-router-dom'
 import AuthLayout from '../../components/AuthLayout/AuthLayout';
 import LoginForm from '../../components/LoginForm/LoginForm';
 
@@ -36,7 +38,7 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         localStorage.setItem('refresh_token', data.refresh);
         
         // Redirigir al dashboard u otra ruta protegida
-        navigate('/dashboard'); 
+        navigate('/'); 
       } else {
         // Manejo de errores específicos (ej. CAPTCHA incorrecto o credenciales inválidas)
         if (data.captcha) {
@@ -59,7 +61,7 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
   const handleForgotPasswordRedirect = () => {
     navigate('/forgot-password');
   };
-  
+
   return (
     <AuthLayout
       tagline="Mueve tu alma."
@@ -71,9 +73,9 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         </div>
       )}
       <LoginForm
-        onSubmit={onLogin}
-        onSignUp={onSignUp}
-        onForgotPassword={onForgotPassword}
+        onSubmit={handleLogin}
+        onSignUp={handleSignUpRedirect}
+        onForgotPassword={handleForgotPasswordRedirect}
       />
     </AuthLayout>
   );
