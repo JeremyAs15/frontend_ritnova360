@@ -1,0 +1,16 @@
+/* Botón olvidé contraseña */
+.form__forgot {
+  background: none;
+  border: none;
+  color: #f97316;
+  font-weight: 500;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+ 
+.form__forgot:hover {
+  color: #ea580c;
+  text-decoration: underline;
+}
