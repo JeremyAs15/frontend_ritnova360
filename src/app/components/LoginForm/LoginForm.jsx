@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Turnstile } from '@marsidev/react-turnstile';
 import InputField from '../InputField/InputField';
 import PasswordInput from '../PasswordInput/PasswordInput';
 import '../../styles/forms.css';
@@ -13,7 +14,11 @@ import './LoginForm.css';
  */
 function LoginForm({ onSubmit, onSignUp, onForgotPassword }) {
   const [form, setForm] = useState({ email: '', password: '' });
+  const [captchaToken, setCaptchaToken] = useState(null);
   const [errors, setErrors] = useState({});
+
+  // Clave del sitio obtenida de las variables de entorno de Vite
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
 
   const emailIcon = (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -31,6 +36,10 @@ function LoginForm({ onSubmit, onSignUp, onForgotPassword }) {
     const newErrors = {};
     if (!form.email.includes('@')) newErrors.email = 'Correo no válido';
     if (form.password.length < 6) newErrors.password = 'Mínimo 6 caracteres';
+
+    if (!captchaToken) {
+      newErrors.captcha = 'Por favor, complete la verificación de seguridad.';
+    }
     return newErrors;
   };
 
@@ -40,7 +49,11 @@ function LoginForm({ onSubmit, onSignUp, onForgotPassword }) {
       setErrors(newErrors);
       return;
     }
-    onSubmit?.(form);
+    onSubmit?.({ 
+      email: form.email, 
+      password: form.password, 
+      captcha_token: captchaToken 
+    });
   };
 
   const GoogleIcon = () => (
@@ -80,7 +93,20 @@ function LoginForm({ onSubmit, onSignUp, onForgotPassword }) {
           </button>
         }
       />
-
+      {/* Renderizado del Widget de Turnstile */}
+      <div className="form__captcha-container" style={{ marginBottom: '15px', display: 'flex', justifyContent: 'center' }}>
+        <Turnstile
+          siteKey={siteKey}
+          onSuccess={(token) => {
+            setCaptchaToken(token);
+            if (errors.captcha) setErrors((prev) => ({ ...prev, captcha: '' }));
+          }}
+          onError={() => setCaptchaToken(null)}
+          onExpire={() => setCaptchaToken(null)}
+        />
+      </div>
+      {errors.captcha && <span className="input-field__error" style={{ display: 'block', textAlign: 'center', marginBottom: '15px' }}>{errors.captcha}</span>}
+      
       <button className="form__submit" onClick={handleSubmit}>
         Iniciar Sesión <span>→</span>
       </button>
