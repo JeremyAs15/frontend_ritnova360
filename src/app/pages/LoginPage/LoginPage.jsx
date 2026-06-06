@@ -9,11 +9,67 @@ import LoginForm from '../../components/LoginForm/LoginForm';
  *  - onForgotPassword  {function}  Navegar a ForgotPasswordPage
  */
 function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
+  const navigate = useNavigate();
+  const [loginError, setLoginError] = useState(null);
+
+  const handleLogin = async (credentials) => {
+    setLoginError(null);
+    try {
+      // Petición al endpoint personalizado de inicio de sesión de Django
+      const response = await fetch('http://localhost:8000/api/users/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: credentials.email,
+          password: credentials.password,
+          captcha_token: credentials.captcha_token, // Se envía el token aquí
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Almacenar los tokens JWT obtenidos de forma segura
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('refresh_token', data.refresh);
+        
+        // Redirigir al dashboard u otra ruta protegida
+        navigate('/dashboard'); 
+      } else {
+        // Manejo de errores específicos (ej. CAPTCHA incorrecto o credenciales inválidas)
+        if (data.captcha) {
+          setLoginError(data.captcha);
+        } else if (data.detail) {
+          setLoginError(data.detail);
+        } else {
+          setLoginError('No se pudo iniciar sesión. Verifique sus credenciales.');
+        }
+      }
+    } catch (err) {
+      setLoginError('Error de conexión con el servidor.');
+    }
+  };
+
+  const handleSignUpRedirect = () => {
+    navigate('/signup');
+  };
+
+  const handleForgotPasswordRedirect = () => {
+    navigate('/forgot-password');
+  };
+  
   return (
     <AuthLayout
       tagline="Mueve tu alma."
       description="Siente el ritmo en cada paso y descubre el poder del movimiento en la academia de danza más vibrante del país."
     >
+      {loginError && (
+        <div style={{ color: '#d32f2f', backgroundColor: '#ffebee', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px', border: '1px solid #ef9a9a', textAlign: 'center' }}>
+          {loginError}
+        </div>
+      )}
       <LoginForm
         onSubmit={onLogin}
         onSignUp={onSignUp}
