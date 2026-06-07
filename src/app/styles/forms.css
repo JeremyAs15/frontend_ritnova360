@@ -141,3 +141,45 @@
   font-size: 14px;
   border: 1px solid #a5d6a7;
 }
+
+/* Términos */
+.form__terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 2px 0;
+}
+ 
+.form__checkbox {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  accent-color: var(--color-orange);
+  cursor: pointer;
+  margin-top: 2px;
+}
+ 
+.form__terms-label {
+  font-family: var(--font-main);
+  font-weight: 400;
+  font-size: 16px;
+  color: var(--color-text-medium);
+  line-height: 1.5;
+  cursor: pointer;
+}
+ 
+.form__link {
+  color: var(--color-orange);
+  font-weight: 600;
+  text-decoration: none;
+}
+ 
+.form__link:hover {
+  text-decoration: underline;
+}
+ 
+.form__terms-error {
+  font-size: 0.78rem;
+  color: var(--alert-error-color);
+  margin-top: -12px;
+}
