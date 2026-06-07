@@ -1,0 +1,59 @@
+:root {
+  /* Colores principales */
+  --color-orange:        #f97316;
+  --color-orange-dark:   #e27a25;
+  --color-orange-mid:    #F78F1E;
+  --color-orange-light:  #fff3ec;
+  --color-orange-border: #ffcba4;
+
+  --color-pink:          #c2185b;
+  --color-pink-dark:     #ad1457;
+  --color-pink-darker:   #880e4f;
+
+  /* Colores de texto */
+  --color-text:          #111827;
+  --color-text-medium:   #374151;
+  --color-text-muted:    #6b7280;
+  --color-text-light:    #9ca3af;
+  --color-text-placeholder: #757a83;
+
+  /* Bordes y fondos */
+  --color-border:        #e5e7eb;
+  --color-border-warm:   #f0e8e0;
+  --color-bg:            #fdf8f4;
+  --color-bg-white:      #ffffff;
+
+  /* Gradientes */
+  --gradient-orange: linear-gradient(135deg, var(--color-orange-dark) 0%, var(--color-orange-mid) 100%);
+  --gradient-pink:   linear-gradient(135deg, var(--color-pink) 0%, var(--color-pink-dark) 100%);
+
+  /* Sombras */
+  --shadow-orange:   0 4px 14px rgba(249, 115, 22, 0.3);
+  --shadow-orange-hover: 0 6px 18px rgba(249, 115, 22, 0.4);
+  --shadow-pink:     0 4px 14px rgba(194, 24, 91, 0.35);
+  --shadow-pink-hover: 0 6px 18px rgba(194, 24, 91, 0.4);
+
+  /* Tipografía */
+  --font-main:       'Anuphan', sans-serif;
+
+  /* Radios */
+  --radius-sm:       6px;
+  --radius-md:       10px;
+  --radius-lg:       12px;
+  --radius-xl:       16px;
+  --radius-full:     999px;
+
+  /* Botón principal */
+  --btn-primary-bg:      var(--gradient-orange);
+  --btn-primary-color:   #fff;
+  --btn-primary-shadow:  var(--shadow-orange);
+  --btn-primary-shadow-hover: var(--shadow-orange-hover);
+
+  /* Alertas */
+  --alert-error-color:   #d32f2f;
+  --alert-error-bg:      #ffebee;
+  --alert-error-border:  #ef9a9a;
+  --alert-success-color: #2e7d32;
+  --alert-success-bg:    #e8f5e9;
+  --alert-success-border: #a5d6a7;
+}
