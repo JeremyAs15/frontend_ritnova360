@@ -187,7 +187,6 @@ function AuthForm({ onSubmit, onLogin }) {
       </div>
       {errors.terms && <span className="form__terms-error">{errors.terms}</span>}
 
-      {/* MODIFICADO: Botón principal deshabilitado mientras carga */}
       <button
         className="form__submit"
         onClick={handleSubmit}

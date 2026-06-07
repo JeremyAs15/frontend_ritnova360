@@ -8,7 +8,7 @@ function SignUpPageWrapper() {
   const navigate = useNavigate();
   return (
     <SignUpPage 
-      onLogin={() => navigate('/')} 
+      onLogin={() => navigate('/login')} 
       onSignUp={() => navigate('/')} 
     />
   );
