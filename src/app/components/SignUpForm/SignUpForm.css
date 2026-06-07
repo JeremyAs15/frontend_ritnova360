@@ -1,19 +1,19 @@
 /* Fila nombres + apellidos */
-.auth-form__row {
+.form__row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
- 
+
 /* Checkbox términos */
-.auth-form__terms {
+.form__terms {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   padding: 2px 0;
 }
- 
-.auth-form__checkbox {
+
+.form__checkbox {
   width: 18px;
   height: 18px;
   min-width: 18px;
@@ -21,8 +21,8 @@
   cursor: pointer;
   margin-top: 2px;
 }
- 
-.auth-form__terms-label {
+
+.form__terms-label {
   font-family: 'Anuphan', sans-serif;
   font-weight: 400;
   font-size: 16px;
@@ -30,18 +30,18 @@
   line-height: 1.5;
   cursor: pointer;
 }
- 
-.auth-form__link {
+
+.form__link {
   color: #f97316;
   font-weight: 600;
   text-decoration: none;
 }
- 
-.auth-form__link:hover {
+
+.form__link:hover {
   text-decoration: underline;
 }
- 
-.auth-form__terms-error {
+
+.form__terms-error {
   font-size: 0.78rem;
   color: #dc2626;
   margin-top: -12px;

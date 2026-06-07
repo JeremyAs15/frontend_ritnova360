@@ -51,6 +51,7 @@ function AuthForm({ onSubmit, onLogin }) {
     if (!form.email.includes('@')) newErrors.email = 'Correo no válido';
     if (form.password.length < 6) newErrors.password = 'Mínimo 6 caracteres';
     if (!accepted) newErrors.terms = 'Debes aceptar los términos';
+    if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Las contraseñas no coinciden';
     return newErrors;
   };
 
@@ -113,14 +114,13 @@ function AuthForm({ onSubmit, onLogin }) {
         Crea tu cuenta para acceder a clases exclusivas y aprender con los mejores.
       </p>
 
-      {/* NUEVO: Contenedores para mensajes del servidor */}
       {serverStatus.error && (
-        <div style={{ color: '#d32f2f', backgroundColor: '#ffebee', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px', border: '1px solid #ef9a9a' }}>
+        <div className="form__alert-error">
           {serverStatus.error}
         </div>
       )}
       {serverStatus.success && (
-        <div style={{ color: '#2e7d32', backgroundColor: '#e8f5e9', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px', border: '1px solid #a5d6a7' }}>
+        <div className="form__alert-success">
           {serverStatus.success}
         </div>
       )}
