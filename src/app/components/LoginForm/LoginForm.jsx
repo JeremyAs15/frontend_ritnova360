@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { useGoogleLogin } from '@react-oauth/google';
 import InputField from '../InputField/InputField';
 import PasswordInput from '../PasswordInput/PasswordInput';
 import '../../styles/forms.css';
@@ -55,6 +56,16 @@ function LoginForm({ onSubmit, onSignUp, onForgotPassword }) {
       captcha_token: captchaToken 
     });
   };
+
+  // Implementación del login de Google usando un flujo implícito para obtener el token de identidad
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      onGoogleSubmit?.(tokenResponse.access_token);
+    },
+    onError: () => {
+      alert('Error al autenticarse con el servicio de Google.');
+    },
+  });
 
   const GoogleIcon = () => (
     <svg width="18" height="18" viewBox="0 0 48 48">
@@ -117,7 +128,8 @@ function LoginForm({ onSubmit, onSignUp, onForgotPassword }) {
         <span />
       </div>
 
-      <button className="form__google">
+      {/* Botón de inicio de sesión con Google actualizado */}
+      <button type="button" className="form__google" onClick={() => handleGoogleLogin()}>
         <GoogleIcon /> Google
       </button>
 
