@@ -10,10 +10,11 @@ import './LoginForm.css';
  * LoginForm
  * Props:
  *  - onSubmit          {function}  Recibe { email, password }
+ *  - onGoogleSubmit    {function}  Recibe el token de autenticación de Google
  *  - onSignUp          {function}  Navegar al registro
  *  - onForgotPassword  {function}  Navegar a recuperar contraseña
  */
-function LoginForm({ onSubmit, onSignUp, onForgotPassword }) {
+function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
   const [form, setForm] = useState({ email: '', password: '' });
   const [captchaToken, setCaptchaToken] = useState(null);
   const [errors, setErrors] = useState({});

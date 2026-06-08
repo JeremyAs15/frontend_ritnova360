@@ -55,6 +55,7 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
   };
 
   const handleGoogleLogin = async (googleAccessToken) => {
+    console.log("Token recibido:", googleAccessToken);
     setLoginError(null);
     try {
       // Nota: Si usaste useGoogleLogin del lado del cliente, puedes mandar el token de acceso
