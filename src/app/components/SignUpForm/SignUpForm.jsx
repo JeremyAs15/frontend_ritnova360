@@ -1,17 +1,20 @@
 import { useState } from 'react';
+import { useGoogleLogin } from '@react-oauth/google';
 import InputField from '../InputField/InputField';
 import PasswordInput from '../PasswordInput/PasswordInput';
 import '../../styles/forms.css';
 import './SignUpForm.css';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /**
  * AuthForm
  * Formulario de registro.
  * Props:
  *  - onSubmit  {function}  Recibe el objeto { nombres, apellidos, email, password }
+ *  - onGoogleSubmit  {function}  Recibe el token de acceso de Google tras la autenticación 
  *  - onLogin   {function}  Navegar al login (link "Inicia sesión")
  */
-function AuthForm({ onSubmit, onLogin }) {
+function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
   const [form, setForm] = useState({
     nombres: '',
     apellidos: '',
@@ -22,7 +25,6 @@ function AuthForm({ onSubmit, onLogin }) {
 
   const [accepted, setAccepted] = useState(false);
   const [errors, setErrors] = useState({});
-
   const [serverStatus, setServerStatus] = useState({ loading: false, error: null, success: null });
 
   const userIcon = (
@@ -65,7 +67,7 @@ function AuthForm({ onSubmit, onLogin }) {
     setServerStatus({ loading: true, error: null, success: null });
 
     try {
-      const response = await fetch('http://localhost:8000/api/users/register/', {
+      const response = await fetch(`${API_BASE_URL}/api/users/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,6 +98,20 @@ function AuthForm({ onSubmit, onLogin }) {
       setServerStatus({ loading: false, error: 'No se pudo conectar con el servidor de la academia.', success: null });
     }
   };
+
+  // Implementación del flujo de Google OAuth
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      onGoogleSubmit?.(tokenResponse.access_token);
+    },
+    onError: () => {
+      setServerStatus({
+        loading: false,
+        error: 'Error al autenticarse con el servicio de Google.',
+        success: null
+      });
+    },
+  });
 
   /* Google icon */
   const GoogleIcon = () => (
@@ -204,7 +220,14 @@ function AuthForm({ onSubmit, onLogin }) {
       </div>
 
       {/* Google */}
-      <button className="form__google">
+      <button 
+        type="button"
+        className="form__google" 
+        onClick={() => {
+          console.log("Clic en el botón de Google detectado"); // Línea de depuración temporal
+          handleGoogleLogin();
+        }}
+      >
         <GoogleIcon /> Google
       </button>
 
