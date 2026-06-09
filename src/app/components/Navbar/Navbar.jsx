@@ -22,7 +22,7 @@ function Navbar({ onCatalogClick }) {
     <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
       {/* Logo */}
       <div className="navbar__logo" onClick={() => navigate('/')}>
-        <img src="public/LogoLargo.png" alt="Ritnova 360" />
+        <img src="/logoLargo.png" alt="Ritnova 360" />
       </div>
 
       {/* Links */}
