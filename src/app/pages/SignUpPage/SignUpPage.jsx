@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/AuthLayout/AuthLayout';
 import SignUpForm from '../../components/SignUpForm/SignUpForm';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function SignUpPage({ onSignUp, onLogin }) {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ function SignUpPage({ onSignUp, onLogin }) {
     setError(null);
     try {
       // Petición al endpoint común del backend para autenticación con Google
-      const response = await fetch('http://localhost:8000/api/users/google-login/', {
+      const response = await fetch(`${API_BASE_URL}/api/users/google-login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'
 import AuthLayout from '../../components/AuthLayout/AuthLayout';
 import LoginForm from '../../components/LoginForm/LoginForm';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /**
  * LoginPage
@@ -18,7 +19,7 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
     setLoginError(null);
     try {
       // Petición al endpoint personalizado de inicio de sesión de Django
-      const response = await fetch('http://localhost:8000/api/users/login/', {
+      const response = await fetch(`${API_BASE_URL}/api/users/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,7 +61,7 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
     try {
       // Nota: Si usaste useGoogleLogin del lado del cliente, puedes mandar el token de acceso
       // al backend. Adaptaremos el backend para validar el token que recibimos.
-      const response = await fetch('http://localhost:8000/api/users/google-login/', {
+      const response = await fetch(`${API_BASE_URL}/api/users/google-login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

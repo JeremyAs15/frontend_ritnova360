@@ -4,6 +4,7 @@ import InputField from '../InputField/InputField';
 import PasswordInput from '../PasswordInput/PasswordInput';
 import '../../styles/forms.css';
 import './SignUpForm.css';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 /**
  * AuthForm
@@ -66,7 +67,7 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
     setServerStatus({ loading: true, error: null, success: null });
 
     try {
-      const response = await fetch('http://localhost:8000/api/users/register/', {
+      const response = await fetch(`${API_BASE_URL}/api/users/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
