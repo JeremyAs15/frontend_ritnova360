@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Search, Plus, Pencil, Trash2, Menu } from 'lucide-react';
 
+/* Se establecen datos Hardcodeados para una vista inicial. 
+ * TODO: Reemplazar con datos reales obtenidos desde el backend. 
+*/
 const seedUsers = [
   { id: 'u1', name: 'Ana García', email: 'ana@ritnova360.com', role: 'admin', status: 'activo', createdAt: '2026-01-15' },
   { id: 'u2', name: 'Luis Torres', email: 'luis@ritnova360.com', role: 'director', status: 'activo', createdAt: '2026-02-03' },
@@ -79,6 +82,7 @@ function AdminUsers() {
   const [q, setQ] = useState('');
   const [roleF, setRoleF] = useState('todos');
   const [statusF, setStatusF] = useState('todos');
+  const [formOpen, setFormOpen] = useState(false);
 
   const filtered = useMemo(() => users.filter((u) => {
     return (roleF === 'todos' || u.role === roleF)
@@ -93,10 +97,96 @@ function AdminUsers() {
           <h1 className="text-3xl font-bold">Usuarios internos</h1>
           <p className="mt-1 text-sm text-slate-500">Administra administradores, directores y profesores · {filtered.length}</p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-3 text-sm font-semibold text-white shadow-lg">
+        <button
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-3 text-sm font-semibold text-white shadow-lg"
+          onClick={() => setFormOpen(true)}
+          type="button"
+        >
           <Plus className="h-4 w-4" /> Nuevo usuario
         </button>
       </div>
+
+      {formOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6" style={{ animation: 'overlay-fade 180ms ease-out' }}>
+          <div className="relative w-full max-w-3xl rounded-3xl bg-[#faf6f1] p-6 shadow-2xl ring-1 ring-black/10" style={{ animation: 'modal-pop 220ms ease-out' }}>
+            <button
+              type="button"
+              onClick={() => setFormOpen(false)}
+              className="absolute right-5 top-5 rounded-full p-1 text-slate-500 hover:bg-black/5 hover:text-slate-700"
+              aria-label="Cerrar formulario"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18" />
+                <path d="M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="space-y-6 pr-8">
+              <div>
+                <h2 className="text-2xl font-medium text-slate-900">Nuevo usuario interno</h2>
+              </div>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-base font-medium text-slate-800">Nombre completo</label>
+                  <input
+                    type="text"
+                    placeholder=""
+                    className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-base font-medium text-slate-800">Correo</label>
+                  <input
+                    type="email"
+                    placeholder=""
+                    className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-base font-medium text-slate-800">Rol</label>
+                    <div className="relative">
+                      <select className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300">
+                        <option>Profesor</option>
+                        <option>Administrador</option>
+                        <option>Director</option>
+                      </select>
+                      <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-base font-medium text-slate-800">Estado</label>
+                    <div className="relative">
+                      <select className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300">
+                        <option>Activo</option>
+                        <option>Inactivo</option>
+                      </select>
+                      <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg"
+                >
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
         <div className="grid gap-3 md:grid-cols-3">
@@ -175,6 +265,31 @@ function AdminUsers() {
       </section>
     </div>
   );
+}
+
+const animationStyles = `
+  @keyframes overlay-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes modal-pop {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+`;
+
+if (typeof document !== 'undefined' && !document.getElementById('admin-modal-animations')) {
+  const style = document.createElement('style');
+  style.id = 'admin-modal-animations';
+  style.textContent = animationStyles;
+  document.head.appendChild(style);
 }
 
 export default function AdminPage() {
