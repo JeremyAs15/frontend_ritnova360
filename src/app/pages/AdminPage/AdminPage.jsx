@@ -83,6 +83,54 @@ function AdminUsers() {
   const [roleF, setRoleF] = useState('todos');
   const [statusF, setStatusF] = useState('todos');
   const [formOpen, setFormOpen] = useState(false);
+  // Formulario controlado para preparar la integración con backend.
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    role: 'teacher',
+    status: 'activo',
+    password: '',
+    confirmPassword: '',
+  });
+  // Errores por campo mostrados directamente en el modal.
+  const [errors, setErrors] = useState({});
+
+  const closeForm = () => {
+    setFormOpen(false);
+    setForm({
+      name: '',
+      email: '',
+      role: 'teacher',
+      status: 'activo',
+      password: '',
+      confirmPassword: '',
+    });
+    setErrors({});
+  };
+
+  // Validación ligera del cliente: obligatorios, email y contraseña.
+  const validate = () => {
+    const nextErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!form.name.trim()) nextErrors.name = 'El nombre completo es obligatorio.';
+    if (!form.email.trim()) nextErrors.email = 'El correo es obligatorio.';
+    else if (!emailRegex.test(form.email)) nextErrors.email = 'Ingresa un correo válido.';
+    if (!form.role) nextErrors.role = 'Selecciona un rol.';
+    if (!form.status) nextErrors.status = 'Selecciona un estado.';
+    if (!form.password) nextErrors.password = 'La contraseña es obligatoria.';
+    else if (form.password.length < 8) nextErrors.password = 'La contraseña debe tener al menos 8 caracteres.';
+    if (!form.confirmPassword) nextErrors.confirmPassword = 'Confirma la contraseña.';
+    else if (form.confirmPassword !== form.password) nextErrors.confirmPassword = 'Las contraseñas no coinciden.';
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validate()) return;
+    closeForm();
+  };
 
   const filtered = useMemo(() => users.filter((u) => {
     return (roleF === 'todos' || u.role === roleF)
@@ -131,25 +179,33 @@ function AdminUsers() {
                   <label className="text-base font-medium text-slate-800">Nombre completo</label>
                   <input
                     type="text"
-                    placeholder=""
+                    value={form.name}
+                    onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))}
                     className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
                   />
+                  {errors.name && <p className="text-sm text-rose-600">{errors.name}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-base font-medium text-slate-800">Correo</label>
                   <input
                     type="email"
-                    placeholder=""
+                    value={form.email}
+                    onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))}
                     className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
                   />
+                  {errors.email && <p className="text-sm text-rose-600">{errors.email}</p>}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-base font-medium text-slate-800">Rol</label>
                     <div className="relative">
-                      <select className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300">
+                      <select
+                        value={form.role}
+                        onChange={(e) => setForm((current) => ({ ...current, role: e.target.value }))}
+                        className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300"
+                      >
                         <option>Profesor</option>
                         <option>Administrador</option>
                         <option>Director</option>
@@ -158,12 +214,17 @@ function AdminUsers() {
                         <path d="m6 9 6 6 6-6" />
                       </svg>
                     </div>
+                    {errors.role && <p className="text-sm text-rose-600">{errors.role}</p>}
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-base font-medium text-slate-800">Estado</label>
                     <div className="relative">
-                      <select className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300">
+                      <select
+                        value={form.status}
+                        onChange={(e) => setForm((current) => ({ ...current, status: e.target.value }))}
+                        className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300"
+                      >
                         <option>Activo</option>
                         <option>Inactivo</option>
                       </select>
@@ -171,6 +232,29 @@ function AdminUsers() {
                         <path d="m6 9 6 6 6-6" />
                       </svg>
                     </div>
+                    {errors.status && <p className="text-sm text-rose-600">{errors.status}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-base font-medium text-slate-800">Contraseña</label>
+                    <input
+                      type="password"
+                      value={form.password}
+                      onChange={(e) => setForm((current) => ({ ...current, password: e.target.value }))}
+                      className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
+                    />
+                    {errors.password && <p className="text-sm text-rose-600">{errors.password}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-base font-medium text-slate-800">Confirmar contraseña</label>
+                    <input
+                      type="password"
+                      value={form.confirmPassword}
+                      onChange={(e) => setForm((current) => ({ ...current, confirmPassword: e.target.value }))}
+                      className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
+                    />
+                    {errors.confirmPassword && <p className="text-sm text-rose-600">{errors.confirmPassword}</p>}
                   </div>
                 </div>
               </div>
@@ -179,6 +263,7 @@ function AdminUsers() {
                 <button
                   type="button"
                   className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg"
+                  onClick={handleSubmit}
                 >
                   Guardar
                 </button>
