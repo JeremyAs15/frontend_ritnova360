@@ -94,6 +94,7 @@ function AdminUsers() {
   });
   // Errores por campo mostrados directamente en el modal.
   const [errors, setErrors] = useState({});
+  const [feedback, setFeedback] = useState(null);
 
   const closeForm = () => {
     setFormOpen(false);
@@ -106,6 +107,7 @@ function AdminUsers() {
       confirmPassword: '',
     });
     setErrors({});
+    setFeedback(null);
   };
 
   // Validación ligera del cliente: obligatorios, email y contraseña.
@@ -128,8 +130,12 @@ function AdminUsers() {
   };
 
   const handleSubmit = () => {
-    if (!validate()) return;
-    closeForm();
+    if (!validate()) {
+      setFeedback({ type: 'error', text: 'Revisa los campos marcados antes de continuar.' });
+      return;
+    }
+
+    setFeedback({ type: 'success', text: 'Usuario listo para registrarse correctamente.' });
   };
 
   const filtered = useMemo(() => users.filter((u) => {
@@ -173,6 +179,17 @@ function AdminUsers() {
               <div>
                 <h2 className="text-2xl font-medium text-slate-900">Nuevo usuario interno</h2>
               </div>
+
+              {feedback && (
+                <div
+                  className={`rounded-2xl border px-4 py-3 text-sm ${feedback.type === 'success'
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                    : 'border-rose-200 bg-rose-50 text-rose-700'
+                  }`}
+                >
+                  {feedback.text}
+                </div>
+              )}
 
               <div className="space-y-5">
                 <div className="space-y-2">
