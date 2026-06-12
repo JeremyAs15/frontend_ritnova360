@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Search, Plus, Menu } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Plus, Menu } from 'lucide-react';
 import UsersTable from '../../components/UsersTable/UsersTable';
+import UsersFilters from '../../components/UsersFilters/UsersFilters';
 
 /* Se establecen datos Hardcodeados para una vista inicial. 
  * TODO: Reemplazar con datos reales obtenidos desde el backend. 
@@ -357,39 +358,23 @@ function AdminUsers() {
         </div>
       )}
 
-      <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
-        <div className="grid gap-3 md:grid-cols-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              value={q}
-              onChange={(e) => {
-                triggerLoading();
-                setQ(e.target.value);
-              }}
-              placeholder="Buscar nombre o correo..."
-              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-9 pr-3 outline-none focus:border-orange-400"
-            />
-          </div>
-          <select value={roleF} onChange={(e) => {
-            triggerLoading();
-            setRoleF(e.target.value);
-          }} className="rounded-xl border border-slate-200 bg-white px-3 py-3 outline-none focus:border-orange-400">
-            <option value="todos">Todos los roles</option>
-            <option value="admin">Administrador</option>
-            <option value="director">Director</option>
-            <option value="teacher">Profesor</option>
-          </select>
-          <select value={statusF} onChange={(e) => {
-            triggerLoading();
-            setStatusF(e.target.value);
-          }} className="rounded-xl border border-slate-200 bg-white px-3 py-3 outline-none focus:border-orange-400">
-            <option value="todos">Todos los estados</option>
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
-          </select>
-        </div>
-      </section>
+      <UsersFilters
+        q={q}
+        roleF={roleF}
+        statusF={statusF}
+        onSearchChange={(e) => {
+          triggerLoading();
+          setQ(e.target.value);
+        }}
+        onRoleChange={(e) => {
+          triggerLoading();
+          setRoleF(e.target.value);
+        }}
+        onStatusChange={(e) => {
+          triggerLoading();
+          setStatusF(e.target.value);
+        }}
+      />
 
       <UsersTable
         users={filtered}
