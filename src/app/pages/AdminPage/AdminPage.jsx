@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Plus, Menu } from 'lucide-react';
 import UsersTable from '../../components/UsersTable/UsersTable';
 import UsersFilters from '../../components/UsersFilters/UsersFilters';
+import { getUserRoleFromToken } from '../../utils/auth';
 
 /* Se establecen datos Hardcodeados para una vista inicial. 
  * TODO: Reemplazar con datos reales obtenidos desde el backend. 
@@ -102,6 +103,7 @@ function AdminUsers() {
   const [errors, setErrors] = useState({});
   const [feedback, setFeedback] = useState(null);
   const [serverLoading, setServerLoading] = useState(false);
+  const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('access_token')));
 
   const closeForm = () => {
     setFormOpen(false);
@@ -397,6 +399,8 @@ function AdminUsers() {
         emptyMessage={q || roleF !== 'todos' || statusF !== 'todos'
           ? 'No se encontraron usuarios con esos filtros.'
           : 'Aún no hay usuarios registrados.'}
+        canEdit={currentRole === 'admin' || currentRole === 'director'}
+        canDelete={currentRole === 'admin' || currentRole === 'director'}
         onEditUser={() => {}}
         onDeleteUser={(userId) => setUsers((current) => current.filter((user) => user.id !== userId))}
       />

@@ -1,6 +1,14 @@
 import { Pencil, Trash2 } from 'lucide-react';
 
-function UsersTable({ users, loading = false, emptyMessage = 'No hay usuarios para mostrar.', onEditUser, onDeleteUser }) {
+function UsersTable({
+  users,
+  loading = false,
+  emptyMessage = 'No hay usuarios para mostrar.',
+  canEdit = true,
+  canDelete = true,
+  onEditUser,
+  onDeleteUser,
+}) {
   return (
     <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
       <div className="overflow-x-auto">
@@ -49,22 +57,30 @@ function UsersTable({ users, loading = false, emptyMessage = 'No hay usuarios pa
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-500">{user.createdAt}</td>
                   <td className="px-6 py-4 text-right">
-                    <div className="inline-flex gap-2">
-                      <button
-                        type="button"
-                        className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-                        onClick={() => onEditUser?.(user)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-                        onClick={() => onDeleteUser?.(user.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+                    {(canEdit || canDelete) ? (
+                      <div className="inline-flex gap-2">
+                        {canEdit && (
+                          <button
+                            type="button"
+                            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+                            onClick={() => onEditUser?.(user)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            type="button"
+                            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+                            onClick={() => onDeleteUser?.(user.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400">Sin acciones</span>
+                    )}
                   </td>
                 </tr>
               ))
