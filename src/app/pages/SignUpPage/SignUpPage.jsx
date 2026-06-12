@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/AuthLayout/AuthLayout';
 import SignUpForm from '../../components/SignUpForm/SignUpForm';
+import peopleDance from '../../../assets/Signup/people-dance.webp';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function SignUpPage({ onSignUp, onLogin }) {
@@ -43,6 +44,7 @@ function SignUpPage({ onSignUp, onLogin }) {
     <AuthLayout
       tagline="Libera tu energía, domina el escenario."
       description="Únete a la academia donde el movimiento se convierte en arte y la técnica se encuentra con la pasión."
+      image={peopleDance}
     >
       {error && (
         <div style={{ color: '#d32f2f', backgroundColor: '#ffebee', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px', border: '1px solid #ef9a9a', textAlign: 'center' }}>
