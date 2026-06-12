@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Search, Plus, Pencil, Trash2, Menu } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Plus, Menu } from 'lucide-react';
+import UsersTable from '../../components/UsersTable/UsersTable';
+import UsersFilters from '../../components/UsersFilters/UsersFilters';
+import { getUserRoleFromToken } from '../../utils/auth';
 
 /* Se establecen datos Hardcodeados para una vista inicial. 
  * TODO: Reemplazar con datos reales obtenidos desde el backend. 
@@ -82,7 +85,11 @@ function AdminUsers() {
   const [q, setQ] = useState('');
   const [roleF, setRoleF] = useState('todos');
   const [statusF, setStatusF] = useState('todos');
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+  const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
+  const loadingTimerRef = useRef(null);
   // Formulario controlado para preparar la integración con backend.
   const [form, setForm] = useState({
     name: '',
@@ -96,6 +103,7 @@ function AdminUsers() {
   const [errors, setErrors] = useState({});
   const [feedback, setFeedback] = useState(null);
   const [serverLoading, setServerLoading] = useState(false);
+  const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('access_token')));
 
   const closeForm = () => {
     setFormOpen(false);
@@ -109,6 +117,14 @@ function AdminUsers() {
     });
     setErrors({});
     setFeedback(null);
+  };
+
+  const triggerLoading = () => {
+    setLoading(true);
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    loadingTimerRef.current = setTimeout(() => {
+      setLoading(false);
+    }, 350);
   };
 
   // Validación ligera del cliente: obligatorios, email y contraseña.
@@ -182,11 +198,43 @@ function AdminUsers() {
     }
   };
 
+  useEffect(() => {
+    loadingTimerRef.current = setTimeout(() => {
+      setLoading(false);
+    }, 350);
+
+    return () => {
+      if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    };
+  }, []);
+
   const filtered = useMemo(() => users.filter((u) => {
     return (roleF === 'todos' || u.role === roleF)
       && (statusF === 'todos' || u.status === statusF)
       && (!q || `${u.name} ${u.email}`.toLowerCase().includes(q.toLowerCase()));
   }), [users, q, roleF, statusF]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedUsers = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const handleSearchChange = (e) => {
+    triggerLoading();
+    setPage(1);
+    setQ(e.target.value);
+  };
+
+  const handleRoleChange = (e) => {
+    triggerLoading();
+    setPage(1);
+    setRoleF(e.target.value);
+  };
+
+  const handleStatusChange = (e) => {
+    triggerLoading();
+    setPage(1);
+    setStatusF(e.target.value);
+  };
 
   return (
     <div className="space-y-6">
@@ -336,81 +384,53 @@ function AdminUsers() {
         </div>
       )}
 
-      <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
-        <div className="grid gap-3 md:grid-cols-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Buscar nombre o correo..."
-              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-9 pr-3 outline-none focus:border-orange-400"
-            />
-          </div>
-          <select value={roleF} onChange={(e) => setRoleF(e.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-3 outline-none focus:border-orange-400">
-            <option value="todos">Todos los roles</option>
-            <option value="admin">Administrador</option>
-            <option value="director">Director</option>
-            <option value="teacher">Profesor</option>
-          </select>
-          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-3 outline-none focus:border-orange-400">
-            <option value="todos">Todos los estados</option>
-            <option value="activo">Activo</option>
-            <option value="inactivo">Inactivo</option>
-          </select>
-        </div>
-      </section>
+      <UsersFilters
+        q={q}
+        roleF={roleF}
+        statusF={statusF}
+        onSearchChange={handleSearchChange}
+        onRoleChange={handleRoleChange}
+        onStatusChange={handleStatusChange}
+      />
 
-      <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50 text-sm text-slate-600">
-              <tr>
-                <th className="px-6 py-4 font-medium">Usuario</th>
-                <th className="px-6 py-4 font-medium">Rol</th>
-                <th className="px-6 py-4 font-medium">Estado</th>
-                <th className="px-6 py-4 font-medium">Creado</th>
-                <th className="px-6 py-4 text-right font-medium">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((u) => (
-                <tr key={u.id} className="border-t border-slate-100">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-pink-500 text-sm font-bold text-white">
-                        {u.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-900">{u.name}</p>
-                        <p className="text-xs text-slate-500">{u.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 capitalize text-slate-700">{u.role}</td>
-                  <td className="px-6 py-4">
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${u.status === 'activo' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-                      {u.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-500">{u.createdAt}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="inline-flex gap-2">
-                      <button className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>
-                      <button
-                        className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-                        onClick={() => setUsers((current) => current.filter((user) => user.id !== u.id))}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <UsersTable
+        users={paginatedUsers}
+        loading={loading}
+        emptyMessage={q || roleF !== 'todos' || statusF !== 'todos'
+          ? 'No se encontraron usuarios con esos filtros.'
+          : 'Aún no hay usuarios registrados.'}
+        canEdit={currentRole === 'admin' || currentRole === 'director'}
+        canDelete={currentRole === 'admin' || currentRole === 'director'}
+        onEditUser={() => {}}
+        onDeleteUser={(userId) => setUsers((current) => current.filter((user) => user.id !== userId))}
+      />
+
+      <div className="flex flex-col gap-3 rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-black/5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-slate-500">
+          Mostrando {filtered.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-{Math.min(currentPage * pageSize, filtered.length)} de {filtered.length}
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            disabled={currentPage === 1 || loading}
+          >
+            Anterior
+          </button>
+          <span className="text-sm text-slate-600">
+            Página {currentPage} de {totalPages}
+          </span>
+          <button
+            type="button"
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            disabled={currentPage === totalPages || loading}
+          >
+            Siguiente
+          </button>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
