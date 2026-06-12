@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Search, Plus, Menu } from 'lucide-react';
 import UsersTable from '../../components/UsersTable/UsersTable';
@@ -83,7 +83,9 @@ function AdminUsers() {
   const [q, setQ] = useState('');
   const [roleF, setRoleF] = useState('todos');
   const [statusF, setStatusF] = useState('todos');
+  const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
+  const loadingTimerRef = useRef(null);
   // Formulario controlado para preparar la integración con backend.
   const [form, setForm] = useState({
     name: '',
@@ -110,6 +112,14 @@ function AdminUsers() {
     });
     setErrors({});
     setFeedback(null);
+  };
+
+  const triggerLoading = () => {
+    setLoading(true);
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    loadingTimerRef.current = setTimeout(() => {
+      setLoading(false);
+    }, 350);
   };
 
   // Validación ligera del cliente: obligatorios, email y contraseña.
@@ -182,6 +192,16 @@ function AdminUsers() {
       setServerLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadingTimerRef.current = setTimeout(() => {
+      setLoading(false);
+    }, 350);
+
+    return () => {
+      if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    };
+  }, []);
 
   const filtered = useMemo(() => users.filter((u) => {
     return (roleF === 'todos' || u.role === roleF)
@@ -343,18 +363,27 @@ function AdminUsers() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e) => {
+                triggerLoading();
+                setQ(e.target.value);
+              }}
               placeholder="Buscar nombre o correo..."
               className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-9 pr-3 outline-none focus:border-orange-400"
             />
           </div>
-          <select value={roleF} onChange={(e) => setRoleF(e.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-3 outline-none focus:border-orange-400">
+          <select value={roleF} onChange={(e) => {
+            triggerLoading();
+            setRoleF(e.target.value);
+          }} className="rounded-xl border border-slate-200 bg-white px-3 py-3 outline-none focus:border-orange-400">
             <option value="todos">Todos los roles</option>
             <option value="admin">Administrador</option>
             <option value="director">Director</option>
             <option value="teacher">Profesor</option>
           </select>
-          <select value={statusF} onChange={(e) => setStatusF(e.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-3 outline-none focus:border-orange-400">
+          <select value={statusF} onChange={(e) => {
+            triggerLoading();
+            setStatusF(e.target.value);
+          }} className="rounded-xl border border-slate-200 bg-white px-3 py-3 outline-none focus:border-orange-400">
             <option value="todos">Todos los estados</option>
             <option value="activo">Activo</option>
             <option value="inactivo">Inactivo</option>
@@ -364,6 +393,10 @@ function AdminUsers() {
 
       <UsersTable
         users={filtered}
+        loading={loading}
+        emptyMessage={q || roleF !== 'todos' || statusF !== 'todos'
+          ? 'No se encontraron usuarios con esos filtros.'
+          : 'Aún no hay usuarios registrados.'}
         onEditUser={() => {}}
         onDeleteUser={(userId) => setUsers((current) => current.filter((user) => user.id !== userId))}
       />
