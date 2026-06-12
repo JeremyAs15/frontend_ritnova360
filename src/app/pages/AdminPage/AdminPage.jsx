@@ -84,6 +84,8 @@ function AdminUsers() {
   const [q, setQ] = useState('');
   const [roleF, setRoleF] = useState('todos');
   const [statusF, setStatusF] = useState('todos');
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const loadingTimerRef = useRef(null);
@@ -209,6 +211,28 @@ function AdminUsers() {
       && (statusF === 'todos' || u.status === statusF)
       && (!q || `${u.name} ${u.email}`.toLowerCase().includes(q.toLowerCase()));
   }), [users, q, roleF, statusF]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedUsers = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const handleSearchChange = (e) => {
+    triggerLoading();
+    setPage(1);
+    setQ(e.target.value);
+  };
+
+  const handleRoleChange = (e) => {
+    triggerLoading();
+    setPage(1);
+    setRoleF(e.target.value);
+  };
+
+  const handleStatusChange = (e) => {
+    triggerLoading();
+    setPage(1);
+    setStatusF(e.target.value);
+  };
 
   return (
     <div className="space-y-6">
@@ -362,22 +386,13 @@ function AdminUsers() {
         q={q}
         roleF={roleF}
         statusF={statusF}
-        onSearchChange={(e) => {
-          triggerLoading();
-          setQ(e.target.value);
-        }}
-        onRoleChange={(e) => {
-          triggerLoading();
-          setRoleF(e.target.value);
-        }}
-        onStatusChange={(e) => {
-          triggerLoading();
-          setStatusF(e.target.value);
-        }}
+        onSearchChange={handleSearchChange}
+        onRoleChange={handleRoleChange}
+        onStatusChange={handleStatusChange}
       />
 
       <UsersTable
-        users={filtered}
+        users={paginatedUsers}
         loading={loading}
         emptyMessage={q || roleF !== 'todos' || statusF !== 'todos'
           ? 'No se encontraron usuarios con esos filtros.'
@@ -385,6 +400,33 @@ function AdminUsers() {
         onEditUser={() => {}}
         onDeleteUser={(userId) => setUsers((current) => current.filter((user) => user.id !== userId))}
       />
+
+      <div className="flex flex-col gap-3 rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-black/5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-slate-500">
+          Mostrando {filtered.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}-{Math.min(currentPage * pageSize, filtered.length)} de {filtered.length}
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            disabled={currentPage === 1 || loading}
+          >
+            Anterior
+          </button>
+          <span className="text-sm text-slate-600">
+            Página {currentPage} de {totalPages}
+          </span>
+          <button
+            type="button"
+            className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            disabled={currentPage === totalPages || loading}
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
