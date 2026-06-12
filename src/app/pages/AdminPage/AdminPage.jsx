@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Search, Plus, Pencil, Trash2, Menu } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Search, Plus, Menu } from 'lucide-react';
+import UsersTable from '../../components/UsersTable/UsersTable';
 
 /* Se establecen datos Hardcodeados para una vista inicial. 
  * TODO: Reemplazar con datos reales obtenidos desde el backend. 
@@ -361,56 +362,11 @@ function AdminUsers() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50 text-sm text-slate-600">
-              <tr>
-                <th className="px-6 py-4 font-medium">Usuario</th>
-                <th className="px-6 py-4 font-medium">Rol</th>
-                <th className="px-6 py-4 font-medium">Estado</th>
-                <th className="px-6 py-4 font-medium">Creado</th>
-                <th className="px-6 py-4 text-right font-medium">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((u) => (
-                <tr key={u.id} className="border-t border-slate-100">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-pink-500 text-sm font-bold text-white">
-                        {u.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-900">{u.name}</p>
-                        <p className="text-xs text-slate-500">{u.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 capitalize text-slate-700">{u.role}</td>
-                  <td className="px-6 py-4">
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${u.status === 'activo' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-                      {u.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-500">{u.createdAt}</td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="inline-flex gap-2">
-                      <button className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>
-                      <button
-                        className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-                        onClick={() => setUsers((current) => current.filter((user) => user.id !== u.id))}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <UsersTable
+        users={filtered}
+        onEditUser={() => {}}
+        onDeleteUser={(userId) => setUsers((current) => current.filter((user) => user.id !== userId))}
+      />
     </div>
   );
 }
