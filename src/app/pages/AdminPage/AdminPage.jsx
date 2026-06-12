@@ -95,6 +95,7 @@ function AdminUsers() {
   // Errores por campo mostrados directamente en el modal.
   const [errors, setErrors] = useState({});
   const [feedback, setFeedback] = useState(null);
+  const [serverLoading, setServerLoading] = useState(false);
 
   const closeForm = () => {
     setFormOpen(false);
@@ -129,13 +130,56 @@ function AdminUsers() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) {
       setFeedback({ type: 'error', text: 'Revisa los campos marcados antes de continuar.' });
       return;
     }
 
-    setFeedback({ type: 'success', text: 'Usuario listo para registrarse correctamente.' });
+    setFeedback(null);
+    setServerLoading(true);
+    try {
+      const [first_name, ...lastParts] = form.name.trim().split(' ');
+      const last_name = lastParts.join(' ') || 'Apellido';
+      const roleMap = { Profesor: 'teacher', Administrador: 'admin', Director: 'director' };
+
+      const res = await fetch('http://localhost:8000/api/users/internal/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+        body: JSON.stringify({
+          first_name,
+          last_name,
+          email: form.email.trim().toLowerCase(),
+          password: form.password,
+          role: roleMap[form.role] || form.role,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setFeedback({ type: 'success', text: 'Usuario creado con éxito.' });
+        setUsers((prev) => [...prev, {
+          id: data.id,
+          name: `${data.first_name} ${data.last_name}`,
+          email: data.email,
+          role: data.role,
+          status: data.is_active ? 'activo' : 'inactivo',
+          createdAt: data.date_joined?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+        }]);
+        closeForm();
+      } else {
+        const msg = Object.values(data).flat().join(' | ');
+        setFeedback({ type: 'error', text: msg || 'Error al crear el usuario.' });
+      }
+    } catch {
+      setFeedback({ type: 'error', text: 'Error de conexión con el servidor.' });
+    } finally {
+      setServerLoading(false);
+    }
   };
 
   const filtered = useMemo(() => users.filter((u) => {
@@ -281,8 +325,10 @@ function AdminUsers() {
                   type="button"
                   className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg"
                   onClick={handleSubmit}
+                  disabled={serverLoading}
+                  style={{ opacity: serverLoading ? 0.7 : 1, cursor: serverLoading ? 'not-allowed' : 'pointer' }}
                 >
-                  Guardar
+                  {serverLoading ? 'Guardando...' : 'Guardar'}
                 </button>
               </div>
             </div>
