@@ -82,9 +82,10 @@ function AdminUsers() {
   const pageSize = 20;
   const [loading, setLoading] = useState(true);
   const [serverError, setServerError] = useState(null);
-  const [formOpen, setFormOpen] = useState(false);
   const loadingTimerRef = useRef(null);
-  // Formulario controlado para preparar la integración con backend.
+
+  // — Estado modal creación —
+  const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -93,24 +94,52 @@ function AdminUsers() {
     password: '',
     confirmPassword: '',
   });
-  // Errores por campo mostrados directamente en el modal.
   const [errors, setErrors] = useState({});
   const [feedback, setFeedback] = useState(null);
   const [serverLoading, setServerLoading] = useState(false);
-  const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('access_token')));
 
+  // — Estado modal edición (AB-130) —
+  const [editFormOpen, setEditFormOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    role: 'teacher',
+    status: 'activo',
+  });
+  const [editErrors, setEditErrors] = useState({});
+  const [editFeedback, setEditFeedback] = useState(null);
+  const [editServerLoading, setEditServerLoading] = useState(false);
+
+const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('access_token')) ?? 'admin');
+  // — Helpers modal creación —
   const closeForm = () => {
     setFormOpen(false);
-    setForm({
-      name: '',
-      email: '',
-      role: 'teacher',
-      status: 'activo',
-      password: '',
-      confirmPassword: '',
-    });
+    setForm({ name: '', email: '', role: 'teacher', status: 'activo', password: '', confirmPassword: '' });
     setErrors({});
     setFeedback(null);
+  };
+
+  // — Helpers modal edición (AB-130) —
+  const openEditForm = (user) => {
+    setEditingUser(user);
+    setEditForm({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    });
+    setEditErrors({});
+    setEditFeedback(null);
+    setEditFormOpen(true);
+  };
+
+  const closeEditForm = () => {
+    setEditFormOpen(false);
+    setEditingUser(null);
+    setEditForm({ name: '', email: '', role: 'teacher', status: 'activo' });
+    setEditErrors({});
+    setEditFeedback(null);
   };
 
   const normalizeUser = useCallback((user) => ({
@@ -134,9 +163,7 @@ function AdminUsers() {
 
     const response = await fetch(`${API_BASE_URL}/api/users/token/refresh/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh: refreshToken }),
     });
 
@@ -149,16 +176,11 @@ function AdminUsers() {
 
   const fetchWithAuth = useCallback(async (url, options = {}) => {
     const token = localStorage.getItem('access_token');
-    if (!token) {
-      throw new Error('No hay una sesión activa. Inicia sesión nuevamente.');
-    }
+    if (!token) throw new Error('No hay una sesión activa. Inicia sesión nuevamente.');
 
     const doRequest = (accessToken) => fetch(url, {
       ...options,
-      headers: {
-        ...(options.headers || {}),
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: { ...(options.headers || {}), Authorization: `Bearer ${accessToken}` },
     });
 
     let response = await doRequest(token);
@@ -182,12 +204,9 @@ function AdminUsers() {
   const triggerLoading = () => {
     setLoading(true);
     if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
-    loadingTimerRef.current = setTimeout(() => {
-      setLoading(false);
-    }, 350);
+    loadingTimerRef.current = setTimeout(() => setLoading(false), 350);
   };
 
-  // Validación ligera del cliente: obligatorios, email y contraseña.
   const validate = () => {
     const nextErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -219,12 +238,9 @@ function AdminUsers() {
 
         while (nextUrl && !abortController.signal.aborted) {
           const response = await fetchWithAuth(nextUrl, { signal: abortController.signal });
-
           const data = await response.json();
 
-          if (!response.ok) {
-            throw new Error(data.detail || 'No se pudo cargar la lista de usuarios.');
-          }
+          if (!response.ok) throw new Error(data.detail || 'No se pudo cargar la lista de usuarios.');
 
           const results = Array.isArray(data) ? data : (data.results || []);
           collectedUsers.push(...results.map(normalizeUser));
@@ -237,14 +253,11 @@ function AdminUsers() {
           setServerError(error.message || 'Error de conexión con el servidor.');
         }
       } finally {
-        if (!abortController.signal.aborted) {
-          setLoading(false);
-        }
+        if (!abortController.signal.aborted) setLoading(false);
       }
     };
 
     fetchUsers();
-
     return () => abortController.abort();
   }, [fetchWithAuth, normalizeUser]);
 
@@ -254,18 +267,16 @@ function AdminUsers() {
       return;
     }
 
-      setFeedback(null);
-      setServerLoading(true);
-      try {
-        const [first_name, ...lastParts] = form.name.trim().split(' ');
-        const last_name = lastParts.join(' ') || 'Apellido';
-        const roleMap = { Profesor: 'teacher', Administrador: 'admin', Director: 'director' };
+    setFeedback(null);
+    setServerLoading(true);
+    try {
+      const [first_name, ...lastParts] = form.name.trim().split(' ');
+      const last_name = lastParts.join(' ') || 'Apellido';
+      const roleMap = { Profesor: 'teacher', Administrador: 'admin', Director: 'director' };
 
       const res = await fetchWithAuth(`${API_BASE_URL}/api/users/internal/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           first_name,
           last_name,
@@ -279,19 +290,17 @@ function AdminUsers() {
 
       if (res.ok) {
         setFeedback({ type: 'success', text: 'Usuario creado con éxito.' });
-        setUsers((prev) => [...prev, {
-          ...normalizeUser(data),
-        }]);
+        setUsers((prev) => [...prev, { ...normalizeUser(data) }]);
         closeForm();
       } else {
         const msg = Object.values(data).flat().join(' | ');
         setFeedback({ type: 'error', text: msg || 'Error al crear el usuario.' });
       }
-      } catch {
-        setFeedback({ type: 'error', text: 'Error de conexión con el servidor.' });
-      } finally {
-        setServerLoading(false);
-      }
+    } catch {
+      setFeedback({ type: 'error', text: 'Error de conexión con el servidor.' });
+    } finally {
+      setServerLoading(false);
+    }
   };
 
   const filtered = useMemo(() => users.filter((u) => {
@@ -304,23 +313,9 @@ function AdminUsers() {
   const currentPage = Math.min(page, totalPages);
   const paginatedUsers = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  const handleSearchChange = (e) => {
-    triggerLoading();
-    setPage(1);
-    setQ(e.target.value);
-  };
-
-  const handleRoleChange = (e) => {
-    triggerLoading();
-    setPage(1);
-    setRoleF(e.target.value);
-  };
-
-  const handleStatusChange = (e) => {
-    triggerLoading();
-    setPage(1);
-    setStatusF(e.target.value);
-  };
+  const handleSearchChange = (e) => { triggerLoading(); setPage(1); setQ(e.target.value); };
+  const handleRoleChange = (e) => { triggerLoading(); setPage(1); setRoleF(e.target.value); };
+  const handleStatusChange = (e) => { triggerLoading(); setPage(1); setStatusF(e.target.value); };
 
   return (
     <div className="space-y-6">
@@ -344,18 +339,18 @@ function AdminUsers() {
         </div>
       )}
 
+      {/* Modal creación */}
       {formOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6" style={{ animation: 'overlay-fade 180ms ease-out' }}>
           <div className="relative w-full max-w-3xl rounded-3xl bg-[#faf6f1] p-6 shadow-2xl ring-1 ring-black/10" style={{ animation: 'modal-pop 220ms ease-out' }}>
             <button
               type="button"
-              onClick={() => setFormOpen(false)}
+              onClick={closeForm}
               className="absolute right-5 top-5 rounded-full p-1 text-slate-500 hover:bg-black/5 hover:text-slate-700"
               aria-label="Cerrar formulario"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 6L6 18" />
-                <path d="M6 6l12 12" />
+                <path d="M18 6L6 18" /><path d="M6 6l12 12" />
               </svg>
             </button>
 
@@ -365,12 +360,7 @@ function AdminUsers() {
               </div>
 
               {feedback && (
-                <div
-                  className={`rounded-2xl border px-4 py-3 text-sm ${feedback.type === 'success'
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                    : 'border-rose-200 bg-rose-50 text-rose-700'
-                  }`}
-                >
+                <div className={`rounded-2xl border px-4 py-3 text-sm ${feedback.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>
                   {feedback.text}
                 </div>
               )}
@@ -381,7 +371,7 @@ function AdminUsers() {
                   <input
                     type="text"
                     value={form.name}
-                    onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))}
+                    onChange={(e) => setForm((c) => ({ ...c, name: e.target.value }))}
                     className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
                   />
                   {errors.name && <p className="text-sm text-rose-600">{errors.name}</p>}
@@ -392,7 +382,7 @@ function AdminUsers() {
                   <input
                     type="email"
                     value={form.email}
-                    onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))}
+                    onChange={(e) => setForm((c) => ({ ...c, email: e.target.value }))}
                     className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
                   />
                   {errors.email && <p className="text-sm text-rose-600">{errors.email}</p>}
@@ -404,12 +394,12 @@ function AdminUsers() {
                     <div className="relative">
                       <select
                         value={form.role}
-                        onChange={(e) => setForm((current) => ({ ...current, role: e.target.value }))}
+                        onChange={(e) => setForm((c) => ({ ...c, role: e.target.value }))}
                         className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300"
                       >
-                        <option>Profesor</option>
-                        <option>Administrador</option>
-                        <option>Director</option>
+                        <option value="teacher">Profesor</option>
+                        <option value="admin">Administrador</option>
+                        <option value="director">Director</option>
                       </select>
                       <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="m6 9 6 6 6-6" />
@@ -423,11 +413,11 @@ function AdminUsers() {
                     <div className="relative">
                       <select
                         value={form.status}
-                        onChange={(e) => setForm((current) => ({ ...current, status: e.target.value }))}
+                        onChange={(e) => setForm((c) => ({ ...c, status: e.target.value }))}
                         className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300"
                       >
-                        <option>Activo</option>
-                        <option>Inactivo</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
                       </select>
                       <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="m6 9 6 6 6-6" />
@@ -441,7 +431,7 @@ function AdminUsers() {
                     <input
                       type="password"
                       value={form.password}
-                      onChange={(e) => setForm((current) => ({ ...current, password: e.target.value }))}
+                      onChange={(e) => setForm((c) => ({ ...c, password: e.target.value }))}
                       className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
                     />
                     {errors.password && <p className="text-sm text-rose-600">{errors.password}</p>}
@@ -452,7 +442,7 @@ function AdminUsers() {
                     <input
                       type="password"
                       value={form.confirmPassword}
-                      onChange={(e) => setForm((current) => ({ ...current, confirmPassword: e.target.value }))}
+                      onChange={(e) => setForm((c) => ({ ...c, confirmPassword: e.target.value }))}
                       className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
                     />
                     {errors.confirmPassword && <p className="text-sm text-rose-600">{errors.confirmPassword}</p>}
@@ -469,6 +459,111 @@ function AdminUsers() {
                   style={{ opacity: serverLoading ? 0.7 : 1, cursor: serverLoading ? 'not-allowed' : 'pointer' }}
                 >
                   {serverLoading ? 'Guardando...' : 'Guardar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal edición — AB-130 */}
+      {editFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6" style={{ animation: 'overlay-fade 180ms ease-out' }}>
+          <div className="relative w-full max-w-3xl rounded-3xl bg-[#faf6f1] p-6 shadow-2xl ring-1 ring-black/10" style={{ animation: 'modal-pop 220ms ease-out' }}>
+            <button
+              type="button"
+              onClick={closeEditForm}
+              className="absolute right-5 top-5 rounded-full p-1 text-slate-500 hover:bg-black/5 hover:text-slate-700"
+              aria-label="Cerrar formulario"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18" /><path d="M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="space-y-6 pr-8">
+              <div>
+                <h2 className="text-2xl font-medium text-slate-900">Editar usuario</h2>
+                <p className="mt-1 text-sm text-slate-500">{editingUser?.email}</p>
+              </div>
+
+              {editFeedback && (
+                <div className={`rounded-2xl border px-4 py-3 text-sm ${editFeedback.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>
+                  {editFeedback.text}
+                </div>
+              )}
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-base font-medium text-slate-800">Nombre completo</label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm((c) => ({ ...c, name: e.target.value }))}
+                    className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
+                  />
+                  {editErrors.name && <p className="text-sm text-rose-600">{editErrors.name}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-base font-medium text-slate-800">Correo</label>
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm((c) => ({ ...c, email: e.target.value }))}
+                    className="h-12 w-full rounded-2xl border border-[#eadfd4] bg-white px-4 text-slate-900 outline-none transition focus:border-orange-300"
+                  />
+                  {editErrors.email && <p className="text-sm text-rose-600">{editErrors.email}</p>}
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-base font-medium text-slate-800">Rol</label>
+                    <div className="relative">
+                      <select
+                        value={editForm.role}
+                        onChange={(e) => setEditForm((c) => ({ ...c, role: e.target.value }))}
+                        className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300"
+                      >
+                        <option value="teacher">Profesor</option>
+                        <option value="admin">Administrador</option>
+                        <option value="director">Director</option>
+                      </select>
+                      <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                    {editErrors.role && <p className="text-sm text-rose-600">{editErrors.role}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-base font-medium text-slate-800">Estado</label>
+                    <div className="relative">
+                      <select
+                        value={editForm.status}
+                        onChange={(e) => setEditForm((c) => ({ ...c, status: e.target.value }))}
+                        className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300"
+                      >
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                      </select>
+                      <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                    {editErrors.status && <p className="text-sm text-rose-600">{editErrors.status}</p>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg opacity-50 cursor-not-allowed"
+                  disabled
+                  title="Guardar se implementará en AB-133"
+                >
+                  {editServerLoading ? 'Guardando...' : 'Guardar'}
                 </button>
               </div>
             </div>
@@ -493,7 +588,7 @@ function AdminUsers() {
           : 'Aún no hay usuarios registrados.'}
         canEdit={currentRole === 'admin' || currentRole === 'director'}
         canDelete={currentRole === 'admin' || currentRole === 'director'}
-        onEditUser={() => {}}
+        onEditUser={openEditForm}
         onDeleteUser={(userId) => setUsers((current) => current.filter((user) => user.id !== userId))}
       />
 
@@ -505,18 +600,16 @@ function AdminUsers() {
           <button
             type="button"
             className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            onClick={() => setPage((c) => Math.max(1, c - 1))}
             disabled={currentPage === 1 || loading}
           >
             Anterior
           </button>
-          <span className="text-sm text-slate-600">
-            Página {currentPage} de {totalPages}
-          </span>
+          <span className="text-sm text-slate-600">Página {currentPage} de {totalPages}</span>
           <button
             type="button"
             className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            onClick={() => setPage((c) => Math.min(totalPages, c + 1))}
             disabled={currentPage === totalPages || loading}
           >
             Siguiente
