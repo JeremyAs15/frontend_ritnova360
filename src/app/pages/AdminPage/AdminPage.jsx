@@ -1,19 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Plus, Menu } from 'lucide-react';
 import UsersTable from '../../components/UsersTable/UsersTable';
 import UsersFilters from '../../components/UsersFilters/UsersFilters';
 import { getUserRoleFromToken } from '../../utils/auth';
 
-/* Se establecen datos Hardcodeados para una vista inicial. 
- * TODO: Reemplazar con datos reales obtenidos desde el backend. 
-*/
-const seedUsers = [
-  { id: 'u1', name: 'Ana García', email: 'ana@ritnova360.com', role: 'admin', status: 'activo', createdAt: '2026-01-15' },
-  { id: 'u2', name: 'Luis Torres', email: 'luis@ritnova360.com', role: 'director', status: 'activo', createdAt: '2026-02-03' },
-  { id: 'u3', name: 'María Pérez', email: 'maria@ritnova360.com', role: 'teacher', status: 'inactivo', createdAt: '2026-02-21' },
-  { id: 'u4', name: 'Carlos López', email: 'carlos@ritnova360.com', role: 'teacher', status: 'activo', createdAt: '2026-03-05' },
-];
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function AppSidebar({ collapsed, userName = 'Admin User' }) {
   const { pathname } = useLocation();
@@ -81,13 +73,15 @@ function AppSidebar({ collapsed, userName = 'Admin User' }) {
 }
 
 function AdminUsers() {
-  const [users, setUsers] = useState(seedUsers);
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
   const [q, setQ] = useState('');
   const [roleF, setRoleF] = useState('todos');
   const [statusF, setStatusF] = useState('todos');
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const [loading, setLoading] = useState(true);
+  const [serverError, setServerError] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
   const loadingTimerRef = useRef(null);
   // Formulario controlado para preparar la integración con backend.
@@ -119,6 +113,72 @@ function AdminUsers() {
     setFeedback(null);
   };
 
+  const normalizeUser = useCallback((user) => ({
+    id: user.id,
+    name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email,
+    email: user.email,
+    role: user.role,
+    status: user.is_active ? 'activo' : 'inactivo',
+    createdAt: user.date_joined?.slice(0, 10) || '',
+  }), []);
+
+  const redirectToLogin = useCallback(() => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    navigate('/login');
+  }, [navigate]);
+
+  const refreshAccessToken = useCallback(async () => {
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) return null;
+
+    const response = await fetch(`${API_BASE_URL}/api/users/token/refresh/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refresh: refreshToken }),
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    localStorage.setItem('access_token', data.access);
+    return data.access;
+  }, []);
+
+  const fetchWithAuth = useCallback(async (url, options = {}) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      throw new Error('No hay una sesión activa. Inicia sesión nuevamente.');
+    }
+
+    const doRequest = (accessToken) => fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    let response = await doRequest(token);
+    if (response.status !== 401) return response;
+
+    const refreshedToken = await refreshAccessToken();
+    if (!refreshedToken) {
+      redirectToLogin();
+      throw new Error('Tu sesión expiró. Inicia sesión nuevamente.');
+    }
+
+    response = await doRequest(refreshedToken);
+    if (response.status === 401) {
+      redirectToLogin();
+      throw new Error('Tu sesión expiró. Inicia sesión nuevamente.');
+    }
+
+    return response;
+  }, [redirectToLogin, refreshAccessToken]);
+
   const triggerLoading = () => {
     setLoading(true);
     if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
@@ -146,24 +206,65 @@ function AdminUsers() {
     return Object.keys(nextErrors).length === 0;
   };
 
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    const fetchUsers = async () => {
+      setLoading(true);
+      setServerError(null);
+
+      try {
+        const collectedUsers = [];
+        let nextUrl = `${API_BASE_URL}/api/users/internal/`;
+
+        while (nextUrl && !abortController.signal.aborted) {
+          const response = await fetchWithAuth(nextUrl, { signal: abortController.signal });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.detail || 'No se pudo cargar la lista de usuarios.');
+          }
+
+          const results = Array.isArray(data) ? data : (data.results || []);
+          collectedUsers.push(...results.map(normalizeUser));
+          nextUrl = data.next;
+        }
+
+        setUsers(collectedUsers);
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          setServerError(error.message || 'Error de conexión con el servidor.');
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUsers();
+
+    return () => abortController.abort();
+  }, [fetchWithAuth, normalizeUser]);
+
   const handleSubmit = async () => {
     if (!validate()) {
       setFeedback({ type: 'error', text: 'Revisa los campos marcados antes de continuar.' });
       return;
     }
 
-    setFeedback(null);
-    setServerLoading(true);
-    try {
-      const [first_name, ...lastParts] = form.name.trim().split(' ');
-      const last_name = lastParts.join(' ') || 'Apellido';
-      const roleMap = { Profesor: 'teacher', Administrador: 'admin', Director: 'director' };
+      setFeedback(null);
+      setServerLoading(true);
+      try {
+        const [first_name, ...lastParts] = form.name.trim().split(' ');
+        const last_name = lastParts.join(' ') || 'Apellido';
+        const roleMap = { Profesor: 'teacher', Administrador: 'admin', Director: 'director' };
 
-      const res = await fetch('http://localhost:8000/api/users/internal/', {
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/users/internal/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
         body: JSON.stringify({
           first_name,
@@ -179,34 +280,19 @@ function AdminUsers() {
       if (res.ok) {
         setFeedback({ type: 'success', text: 'Usuario creado con éxito.' });
         setUsers((prev) => [...prev, {
-          id: data.id,
-          name: `${data.first_name} ${data.last_name}`,
-          email: data.email,
-          role: data.role,
-          status: data.is_active ? 'activo' : 'inactivo',
-          createdAt: data.date_joined?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+          ...normalizeUser(data),
         }]);
         closeForm();
       } else {
         const msg = Object.values(data).flat().join(' | ');
         setFeedback({ type: 'error', text: msg || 'Error al crear el usuario.' });
       }
-    } catch {
-      setFeedback({ type: 'error', text: 'Error de conexión con el servidor.' });
-    } finally {
-      setServerLoading(false);
-    }
+      } catch {
+        setFeedback({ type: 'error', text: 'Error de conexión con el servidor.' });
+      } finally {
+        setServerLoading(false);
+      }
   };
-
-  useEffect(() => {
-    loadingTimerRef.current = setTimeout(() => {
-      setLoading(false);
-    }, 350);
-
-    return () => {
-      if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
-    };
-  }, []);
 
   const filtered = useMemo(() => users.filter((u) => {
     return (roleF === 'todos' || u.role === roleF)
@@ -251,6 +337,12 @@ function AdminUsers() {
           <Plus className="h-4 w-4" /> Nuevo usuario
         </button>
       </div>
+
+      {serverError && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {serverError}
+        </div>
+      )}
 
       {formOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6" style={{ animation: 'overlay-fade 180ms ease-out' }}>

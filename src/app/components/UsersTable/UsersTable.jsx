@@ -1,5 +1,12 @@
 import { Pencil, Trash2 } from 'lucide-react';
 
+const ROLE_LABELS = {
+  admin: 'Administrador',
+  director: 'Director',
+  teacher: 'Profesor',
+  student: 'Estudiante',
+};
+
 function UsersTable({
   users,
   loading = false,
@@ -49,7 +56,7 @@ function UsersTable({
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 capitalize text-slate-700">{user.role}</td>
+                  <td className="px-6 py-4 text-slate-700">{ROLE_LABELS[user.role] || user.role}</td>
                   <td className="px-6 py-4">
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === 'activo' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                       {user.status}
