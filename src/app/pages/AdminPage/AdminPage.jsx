@@ -111,7 +111,7 @@ function AdminUsers() {
   const [editFeedback, setEditFeedback] = useState(null);
   const [editServerLoading, setEditServerLoading] = useState(false);
 
-const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('access_token')) ?? 'admin');
+  const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('access_token')) ?? 'admin');
   // — Helpers modal creación —
   const closeForm = () => {
     setFormOpen(false);
@@ -316,6 +316,53 @@ const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('
       setServerLoading(false);
     }
   };
+
+  const handleEditSubmit = async () => {
+    if (!validateEdit()) {
+      setEditFeedback({ type: 'error', text: 'Revisa los campos marcados antes de continuar.' });
+      return;
+    }
+
+    setEditFeedback(null);
+    setEditServerLoading(true);
+    try {
+      const [first_name, ...lastParts] = editForm.name.trim().split(' ');
+      const last_name = lastParts.join(' ') || 'Apellido';
+
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/users/${editingUser.id}/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          first_name,
+          last_name,
+          email: editForm.email.trim().toLowerCase(),
+          role: editForm.role,
+          is_active: editForm.status === 'activo',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setUsers((prev) => prev.map((u) => u.id === editingUser.id ? {
+          ...u,
+          name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+          email: data.email,
+          role: data.role,
+          status: data.is_active ? 'activo' : 'inactivo',
+        } : u));
+        closeEditForm();
+      } else {
+        const msg = Object.values(data).flat().join(' | ');
+        setEditFeedback({ type: 'error', text: msg || 'Error al actualizar el usuario.' });
+      }
+    } catch {
+      setEditFeedback({ type: 'error', text: 'Error de conexión con el servidor.' });
+    } finally {
+      setEditServerLoading(false);
+    }
+  };
+
 
   const filtered = useMemo(() => users.filter((u) => {
     return (roleF === 'todos' || u.role === roleF)
@@ -574,7 +621,7 @@ const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('
                 <button
                   type="button"
                   className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg"
-                  onClick={validateEdit}
+                  onClick={handleEditSubmit}
                   disabled={editServerLoading}
                   style={{ opacity: editServerLoading ? 0.7 : 1, cursor: editServerLoading ? 'not-allowed' : 'pointer' }}
                 >
