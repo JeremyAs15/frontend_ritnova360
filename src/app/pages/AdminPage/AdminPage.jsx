@@ -225,6 +225,20 @@ const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('
     return Object.keys(nextErrors).length === 0;
   };
 
+  const validateEdit = () => {
+    const nextErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!editForm.name.trim()) nextErrors.name = 'El nombre completo es obligatorio.';
+    if (!editForm.email.trim()) nextErrors.email = 'El correo es obligatorio.';
+    else if (!emailRegex.test(editForm.email)) nextErrors.email = 'Ingresa un correo válido.';
+    if (!editForm.role) nextErrors.role = 'Selecciona un rol.';
+    if (!editForm.status) nextErrors.status = 'Selecciona un estado.';
+
+    setEditErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
   useEffect(() => {
     const abortController = new AbortController();
 
@@ -559,9 +573,10 @@ const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('
               <div className="flex justify-end pt-2">
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg opacity-50 cursor-not-allowed"
-                  disabled
-                  title="Guardar se implementará en AB-133"
+                  className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-orange-400 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg"
+                  onClick={validateEdit}
+                  disabled={editServerLoading}
+                  style={{ opacity: editServerLoading ? 0.7 : 1, cursor: editServerLoading ? 'not-allowed' : 'pointer' }}
                 >
                   {editServerLoading ? 'Guardando...' : 'Guardar'}
                 </button>
