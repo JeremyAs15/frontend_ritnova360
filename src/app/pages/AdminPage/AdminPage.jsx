@@ -112,6 +112,22 @@ function AdminUsers() {
   const [editServerLoading, setEditServerLoading] = useState(false);
 
   const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('access_token')) ?? 'admin');
+
+  // — Estado de Notificaciones Toast —
+  const [toast, setToast] = useState(null);
+  const toastTimeoutRef = useRef(null);
+
+  const showToast = useCallback((type, message) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToast({ type, message });
+    toastTimeoutRef.current = setTimeout(() => setToast(null), 4000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
+  }, []);
   // — Helpers modal creación —
   const closeForm = () => {
     setFormOpen(false);
@@ -303,9 +319,9 @@ function AdminUsers() {
       const data = await res.json();
 
       if (res.ok) {
-        setFeedback({ type: 'success', text: 'Usuario creado con éxito.' });
         setUsers((prev) => [...prev, { ...normalizeUser(data) }]);
         closeForm();
+        showToast('success', 'Usuario creado con éxito.');
       } else {
         const msg = Object.values(data).flat().join(' | ');
         setFeedback({ type: 'error', text: msg || 'Error al crear el usuario.' });
@@ -352,6 +368,7 @@ function AdminUsers() {
           status: data.is_active ? 'activo' : 'inactivo',
         } : u));
         closeEditForm();
+        showToast('success', 'Usuario actualizado con éxito.');
       } else {
         const msg = Object.values(data).flat().join(' | ');
         setEditFeedback({ type: 'error', text: msg || 'Error al actualizar el usuario.' });
@@ -678,6 +695,43 @@ function AdminUsers() {
           </button>
         </div>
       </div>
+
+      {/* Floating Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-md transition-all duration-300 ${
+            toast.type === 'success'
+              ? 'border-emerald-500/20 bg-emerald-500/90 text-white'
+              : 'border-rose-500/20 bg-rose-500/90 text-white'
+          }`}
+          style={{ animation: 'toast-slide-up 300ms cubic-bezier(0.16, 1, 0.3, 1)' }}
+        >
+          {toast.type === 'success' ? (
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-emerald-600">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+          ) : (
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-rose-600">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <path d="M12 9v4M12 17h.01" />
+                <circle cx="12" cy="12" r="10" />
+              </svg>
+            </div>
+          )}
+          <p className="text-sm font-semibold">{toast.message}</p>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            className="ml-2 text-white/70 hover:text-white transition"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18" /><path d="M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -692,6 +746,17 @@ const animationStyles = `
     from {
       opacity: 0;
       transform: translateY(14px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes toast-slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.95);
     }
     to {
       opacity: 1;
