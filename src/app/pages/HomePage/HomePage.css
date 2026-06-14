@@ -242,6 +242,100 @@
   margin: 0;
 }
 
+/* ═══════════════════════════════════════════
+   Filtros
+═══════════════════════════════════════════ */
+.catalog__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 28px;
+  align-items: center;
+}
+
+.catalog__search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.catalog__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.catalog__search {
+  width: 100%;
+  padding: 10px 14px 10px 36px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  background: var(--color-bg-white);
+  color: var(--color-text);
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.catalog__search::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.catalog__search:focus {
+  outline: none;
+  border-color: var(--color-orange);
+}
+
+.catalog__select {
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  background: var(--color-bg-white);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.catalog__select:focus {
+  outline: none;
+  border-color: var(--color-orange);
+}
+
+.catalog__clear {
+  padding: 10px 16px;
+  border: 1.5px solid var(--color-orange-border);
+  border-radius: var(--radius-md);
+  background: var(--color-orange-light);
+  color: var(--color-orange);
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.catalog__clear:hover {
+  background: var(--color-orange);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .catalog__search-wrap {
+    min-width: 100%;
+  }
+
+  .catalog__select {
+    flex: 1;
+  }
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .catalog__grid { grid-template-columns: repeat(2, 1fr); }
