@@ -1,54 +1,31 @@
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
+import CourseCard from '../../components/CourseCard/CourseCard';
+import { COURSES } from '../../data/courses';
 import './HomePage.css';
 
-/* Datos de ejemplo para el catálogo */
-const COURSES = [
-  { id: 1, title: 'Salsa para Principiantes', instructor: 'Sebastián Rojas', genre: 'Salsa', price: '100.000', rating: 4.8, image: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=400&auto=format&fit=crop' },
-  { id: 2, title: 'Bachata Sensual', instructor: 'Valentina Pineda', genre: 'Bachata', price: '120.000', rating: 4.9, image: 'https://images.unsplash.com/photo-1547153760-18fc86324498?w=400&auto=format&fit=crop' },
-  { id: 3, title: 'Hip-Hop Freestyle', instructor: 'Camilo Giraldo', genre: 'Hip-Hop', price: '100.000', rating: 4.7, image: 'https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=400&auto=format&fit=crop' },
-  { id: 4, title: 'Reggaetón Paso a Paso', instructor: 'Esteban Suárez', genre: 'Reggaetón', price: '120.000', rating: 4.6, image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&auto=format&fit=crop' },
-  { id: 5, title: 'Zumba en Casa', instructor: 'Tatiana Duque', genre: 'Zumba', price: '80.000', rating: 4.8, image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&auto=format&fit=crop' },
-  { id: 6, title: 'Dancehall Femenino', instructor: 'Valeria Mora', genre: 'Dancehall', price: '110.000', rating: 4.7, image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&auto=format&fit=crop' },
-];
-
-function StarIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="#f97316" stroke="none">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-    </svg>
-  );
-}
-
-function CourseCard({ course }) {
-  const navigate = useNavigate();
-  return (
-    <div className="course-card" onClick={() => navigate('/login')}>
-      <div className="course-card__image-wrap">
-        <img src={course.image} alt={course.title} className="course-card__image" />
-        <span className="course-card__genre">{course.genre}</span>
-      </div>
-      <div className="course-card__body">
-        <h3 className="course-card__title">{course.title}</h3>
-        <p className="course-card__instructor">{course.instructor}</p>
-        <div className="course-card__footer">
-          <span className="course-card__rating">
-            <StarIcon /> {course.rating}
-          </span>
-          <span className="course-card__price">${course.price} COP</span>
-        </div>
-      </div>
-    </div>
-  );
-}
+const PAGE_SIZE = 6;
 
 function HomePage() {
   const catalogRef = useRef(null);
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(COURSES.length / PAGE_SIZE);
+  const paginated = COURSES.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const scrollToCatalog = () => {
+    catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
     catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -101,12 +78,51 @@ function HomePage() {
             Ver todas →
           </button>
         </div>
-
+        
+        {paginated.length === 0 ? (
+          <div className="catalog__empty">
+            <span className="catalog__empty-icon">🕺</span>
+            <p className="catalog__empty-title">No hay coreografías disponibles</p>
+            <p className="catalog__empty-subtitle">Pronto habrá nuevos cursos. ¡Vuelve más tarde!</p>
+        </div>
+      ) : (
         <div className="catalog__grid">
-          {COURSES.map((course) => (
+          {paginated.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
         </div>
+      )}
+
+        {/* Paginación */}
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button
+              className="pagination__btn"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              ← Anterior
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                className={`pagination__btn pagination__btn--num ${currentPage === page ? 'pagination__btn--active' : ''}`}
+                onClick={() => handlePageChange(page)}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              className="pagination__btn"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Siguiente →
+            </button>
+          </div>
+        )}
       </section>
 
       <Footer />
