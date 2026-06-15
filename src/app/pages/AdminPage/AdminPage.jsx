@@ -151,8 +151,8 @@ function AdminUsers() {
       });
 
       if (res.ok) {
-        setUsers((current) => current.filter((u) => u.id !== userToDelete.id));
-        showToast('success', 'Usuario eliminado con éxito.');
+        setUsers((current) => current.map((u) => u.id === userToDelete.id ? { ...u, status: 'inactivo' } : u));
+        showToast('success', 'Usuario desactivado con éxito.');
         setDeleteConfirmOpen(false);
         setUserToDelete(null);
       } else {
@@ -186,7 +186,6 @@ function AdminUsers() {
       name: user.name,
       email: user.email,
       role: user.role,
-      status: user.status,
     });
     setEditErrors({});
     setEditFeedback(null);
@@ -196,7 +195,7 @@ function AdminUsers() {
   const closeEditForm = () => {
     setEditFormOpen(false);
     setEditingUser(null);
-    setEditForm({ name: '', email: '', role: 'teacher', status: 'activo' });
+    setEditForm({ name: '', email: '', role: 'teacher' });
     setEditErrors({});
     setEditFeedback(null);
   };
@@ -292,7 +291,6 @@ function AdminUsers() {
     if (!editForm.email.trim()) nextErrors.email = 'El correo es obligatorio.';
     else if (!emailRegex.test(editForm.email)) nextErrors.email = 'Ingresa un correo válido.';
     if (!editForm.role) nextErrors.role = 'Selecciona un rol.';
-    if (!editForm.status) nextErrors.status = 'Selecciona un estado.';
 
     setEditErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -396,7 +394,7 @@ function AdminUsers() {
           last_name,
           email: editForm.email.trim().toLowerCase(),
           role: editForm.role,
-          is_active: editForm.status === 'activo',
+          is_active: editingUser.status === 'activo',
         }),
       });
 
@@ -637,43 +635,23 @@ function AdminUsers() {
                   {editErrors.email && <p className="text-sm text-rose-600">{editErrors.email}</p>}
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-base font-medium text-slate-800">Rol</label>
-                    <div className="relative">
-                      <select
-                        value={editForm.role}
-                        onChange={(e) => setEditForm((c) => ({ ...c, role: e.target.value }))}
-                        className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300"
-                      >
-                        <option value="teacher">Profesor</option>
-                        <option value="admin">Administrador</option>
-                        <option value="director">Director</option>
-                      </select>
-                      <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
-                    </div>
-                    {editErrors.role && <p className="text-sm text-rose-600">{editErrors.role}</p>}
+                <div className="space-y-2">
+                  <label className="text-base font-medium text-slate-800">Rol</label>
+                  <div className="relative">
+                    <select
+                      value={editForm.role}
+                      onChange={(e) => setEditForm((c) => ({ ...c, role: e.target.value }))}
+                      className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300"
+                    >
+                      <option value="teacher">Profesor</option>
+                      <option value="admin">Administrador</option>
+                      <option value="director">Director</option>
+                    </select>
+                    <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
                   </div>
-
-                  <div className="space-y-2">
-                    <label className="text-base font-medium text-slate-800">Estado</label>
-                    <div className="relative">
-                      <select
-                        value={editForm.status}
-                        onChange={(e) => setEditForm((c) => ({ ...c, status: e.target.value }))}
-                        className="h-12 w-full appearance-none rounded-2xl border border-[#eadfd4] bg-white px-4 pr-11 text-slate-900 outline-none transition focus:border-orange-300"
-                      >
-                        <option value="activo">Activo</option>
-                        <option value="inactivo">Inactivo</option>
-                      </select>
-                      <svg className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
-                    </div>
-                    {editErrors.status && <p className="text-sm text-rose-600">{editErrors.status}</p>}
-                  </div>
+                  {editErrors.role && <p className="text-sm text-rose-600">{editErrors.role}</p>}
                 </div>
               </div>
 
@@ -801,11 +779,10 @@ function AdminUsers() {
       {/* Floating Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-md transition-all duration-300 ${
-            toast.type === 'success'
-              ? 'border-emerald-500/20 bg-emerald-500/90 text-white'
-              : 'border-rose-500/20 bg-rose-500/90 text-white'
-          }`}
+          className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-md transition-all duration-300 ${toast.type === 'success'
+            ? 'border-emerald-500/20 bg-emerald-500/90 text-white'
+            : 'border-rose-500/20 bg-rose-500/90 text-white'
+            }`}
           style={{ animation: 'toast-slide-up 300ms cubic-bezier(0.16, 1, 0.3, 1)' }}
         >
           {toast.type === 'success' ? (
