@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Plus, Menu } from 'lucide-react';
+import { LayoutDashboard, Users, ClipboardList, Settings, LogOut, Music2, Plus, Menu, Trash2, AlertTriangle } from 'lucide-react';
 import UsersTable from '../../components/UsersTable/UsersTable';
 import UsersFilters from '../../components/UsersFilters/UsersFilters';
 import { getUserRoleFromToken } from '../../utils/auth';
@@ -113,6 +113,11 @@ function AdminUsers() {
 
   const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('access_token')) ?? 'admin');
 
+  // — Estado modal eliminación —
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [deleteServerLoading, setDeleteServerLoading] = useState(false);
+
   // — Estado de Notificaciones Toast —
   const [toast, setToast] = useState(null);
   const toastTimeoutRef = useRef(null);
@@ -128,6 +133,44 @@ function AdminUsers() {
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     };
   }, []);
+
+  const triggerDeleteConfirm = (userId) => {
+    const user = users.find((u) => u.id === userId);
+    if (user) {
+      setUserToDelete(user);
+      setDeleteConfirmOpen(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+    setDeleteServerLoading(true);
+    try {
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/users/${userToDelete.id}/`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setUsers((current) => current.filter((u) => u.id !== userToDelete.id));
+        showToast('success', 'Usuario eliminado con éxito.');
+        setDeleteConfirmOpen(false);
+        setUserToDelete(null);
+      } else {
+        let errMsg = 'Error al eliminar el usuario.';
+        try {
+          const data = await res.json();
+          errMsg = Object.values(data).flat().join(' | ') || errMsg;
+        } catch {
+          // No JSON body
+        }
+        showToast('error', errMsg);
+      }
+    } catch (error) {
+      showToast('error', 'Error de conexión con el servidor.');
+    } finally {
+      setDeleteServerLoading(false);
+    }
+  };
   // — Helpers modal creación —
   const closeForm = () => {
     setFormOpen(false);
@@ -668,7 +711,7 @@ function AdminUsers() {
         canEdit={currentRole === 'admin' || currentRole === 'director'}
         canDelete={currentRole === 'admin' || currentRole === 'director'}
         onEditUser={openEditForm}
-        onDeleteUser={(userId) => setUsers((current) => current.filter((user) => user.id !== userId))}
+        onDeleteUser={triggerDeleteConfirm}
       />
 
       <div className="flex flex-col gap-3 rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-black/5 sm:flex-row sm:items-center sm:justify-between">
@@ -695,6 +738,65 @@ function AdminUsers() {
           </button>
         </div>
       </div>
+
+      {/* Modal confirmación de eliminación */}
+      {deleteConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6" style={{ animation: 'overlay-fade 180ms ease-out' }}>
+          <div className="relative w-full max-w-md rounded-3xl bg-[#faf6f1] p-6 shadow-2xl ring-1 ring-black/10" style={{ animation: 'modal-pop 220ms ease-out' }}>
+            <button
+              type="button"
+              onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); }}
+              className="absolute right-5 top-5 rounded-full p-1 text-slate-500 hover:bg-black/5 hover:text-slate-700"
+              aria-label="Cerrar confirmación"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18" /><path d="M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">¿Eliminar usuario?</h2>
+                  <p className="text-xs text-slate-500">Esta acción no se puede deshacer</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm text-slate-600">
+                  ¿Estás seguro de que deseas eliminar a <strong className="text-slate-900 font-semibold">{userToDelete?.name}</strong>?
+                </p>
+                <p className="text-xs text-slate-400">
+                  Se eliminará su cuenta y perderá el acceso a la plataforma.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setDeleteConfirmOpen(false); setUserToDelete(null); }}
+                  className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  disabled={deleteServerLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 to-pink-500 px-5 py-3 text-sm font-semibold text-white shadow-lg hover:opacity-90 transition"
+                  disabled={deleteServerLoading}
+                  style={{ opacity: deleteServerLoading ? 0.7 : 1, cursor: deleteServerLoading ? 'not-allowed' : 'pointer' }}
+                >
+                  {deleteServerLoading ? 'Eliminando...' : 'Eliminar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Toast Notification */}
       {toast && (
