@@ -38,11 +38,12 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
         
-        /*
-        Se redirige automaticamente al dashboard del admin. No se ha implementado lógica de roles.
-        TODO: Implementar lógica de roles para redirigir a diferentes dashboards según el rol del usuario (admin, director, profesor, alumno). Por ahora, se asume que todos los usuarios que inician sesión son administradores y se les redirige a la sección de usuarios internos.
-        */
-        navigate('/admin/users'); 
+        const role = data.user?.role;
+        if (role === 'student') {
+          navigate('/profile');
+        } else {
+          navigate('/admin/users');
+        }
       } else {
         // Manejo de errores específicos (ej. CAPTCHA incorrecto o credenciales inválidas)
         if (data.captcha) {
@@ -79,7 +80,12 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
       if (response.ok) {
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
-        navigate('/admin/users');
+        const role = data.user?.role;
+        if (role === 'student') {
+          navigate('/profile');
+        } else {
+          navigate('/admin/users');
+        }
       } else {
         setLoginError(data.detail || 'Fallo la autenticación con Google.');
       }

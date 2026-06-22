@@ -4,6 +4,7 @@ import SignUpPage from '../pages/SignUpPage/SignUpPage';
 import HomePage from '../pages/HomePage/HomePage';
 import AdminPage from '../pages/AdminPage/AdminPage';
 import CoursePage from '../pages/CoursePage/CoursePage';
+import ProfilePage from '../pages/ProfilePage/ProfilePage';
 import { useNavigate } from 'react-router-dom';
 
 function SignUpPageWrapper() {
@@ -26,6 +27,7 @@ function Router() {
         <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
         <Route path="/admin/users" element={<AdminPage />} />
         <Route path="/curso/:id" element={<CoursePage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
   );
