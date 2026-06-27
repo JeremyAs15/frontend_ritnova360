@@ -67,7 +67,9 @@
 
 /* Logo */
 .auth-layout__logo {
+  display: inline-block;
   align-self: flex-start;
+  text-decoration: none;
 }
 
 .auth-layout__logo img {

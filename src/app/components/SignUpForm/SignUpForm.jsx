@@ -145,16 +145,16 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         <InputField
           label="Nombres"
           value={form.nombres}
+          placeholder='Nombres'
           onChange={handleChange('nombres')}
-          placeholder="Luisa María"
           icon={userIcon}
           error={errors.nombres}
         />
         <InputField
           label="Apellidos"
           value={form.apellidos}
+          placeholder='Apellidos'
           onChange={handleChange('apellidos')}
-          placeholder="Martínez"
           icon={userIcon}
           error={errors.apellidos}
         />
@@ -165,7 +165,7 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         type="email"
         value={form.email}
         onChange={handleChange('email')}
-        placeholder="luisa.martinez@gmail.com"
+        placeholder="Correo electrónico"
         icon={emailIcon}
         error={errors.email}
       />
@@ -174,12 +174,14 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         label="Contraseña"
         value={form.password}
         onChange={handleChange('password')}
+        placeholder="Contraseña"
         error={errors.password}
       />
 
       <PasswordInput
         label="Confirmar contraseña"
         value={form.confirmPassword}
+        placeholder="Contraseña"
         onChange={handleChange('confirmPassword')}
         error={errors.confirmPassword}
       />

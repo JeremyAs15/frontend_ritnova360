@@ -4,6 +4,9 @@ import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import CourseCard from '../../components/CourseCard/CourseCard';
 import { COURSES } from '../../data/courses';
+import salsaImg from '../../../assets/catalog/salsa-h.webp';
+import bachataImg from '../../../assets/catalog/bachata-h.webp';
+import reggaetonImg from '../../../assets/catalog/reggaeton-h.webp';
 import './HomePage.css';
 
 const PAGE_SIZE = 6;
@@ -91,17 +94,17 @@ function HomePage() {
         <div className="hero__images">
           <div className="hero__img-grid">
             <img
-              src="https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=500&auto=format&fit=crop"
+              src={salsaImg}
               alt="Baile en grupo"
               className="hero__img hero__img--1"
             />
             <img
-              src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=500&auto=format&fit=crop"
+              src={bachataImg}
               alt="Bailarina"
               className="hero__img hero__img--2"
             />
             <img
-              src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&auto=format&fit=crop"
+              src={reggaetonImg}
               alt="Clase de baile"
               className="hero__img hero__img--3"
             />

@@ -89,7 +89,7 @@ function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
         type="email"
         value={form.email}
         onChange={handleChange('email')}
-        placeholder="luisa.martinez@gmail.com"
+        placeholder="Correo electrónico"
         icon={emailIcon}
         error={errors.email}
       />
@@ -98,6 +98,7 @@ function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
         label="Contraseña"
         value={form.password}
         onChange={handleChange('password')}
+        placeholder="Contraseña"
         error={errors.password}
         hint={
           <button className="form__forgot" onClick={onForgotPassword}>
