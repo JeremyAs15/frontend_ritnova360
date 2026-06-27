@@ -39,8 +39,12 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
         
-        // Redirigir al dashboard u otra ruta protegida
-        navigate('/'); 
+        const role = data.user?.role;
+        if (role === 'student') {
+          navigate('/profile');
+        } else {
+          navigate('/admin/users');
+        }
       } else {
         // Manejo de errores específicos (ej. CAPTCHA incorrecto o credenciales inválidas)
         if (data.captcha) {
@@ -77,7 +81,12 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
       if (response.ok) {
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
-        navigate('/');
+        const role = data.user?.role;
+        if (role === 'student') {
+          navigate('/profile');
+        } else {
+          navigate('/admin/users');
+        }
       } else {
         setLoginError(data.detail || 'Fallo la autenticación con Google.');
       }
