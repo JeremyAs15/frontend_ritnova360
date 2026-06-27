@@ -1,3 +1,10 @@
+import salsaImg from '../../assets/catalog/salsa-h.webp';
+import bachataImg from '../../assets/catalog/bachata-h.webp';
+import hipHopImg from '../../assets/catalog/hip-hop-h.webp';
+import reggaetonImg from '../../assets/catalog/reggaeton-h.webp';
+import zumbaImg from '../../assets/catalog/zumba-casa-h.webp';
+import dancehallImg from '../../assets/catalog/dancehall-h.webp';
+
 export const COURSES = [
   {
     id: 1,
@@ -12,7 +19,7 @@ export const COURSES = [
     level: 'Principiante',
     duration: '6 semanas · 18 videos',
     students: 1240,
-    image: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&auto=format&fit=crop',
+    image: salsaImg,
     description:
       'Aprende los fundamentos de la salsa caleña desde cero: pasos básicos, tiempo musical, giros y coreografías completas. Cada clase está diseñada para que avances a tu ritmo, con correcciones en cámara lenta y repeticiones guiadas.',
     modules: [
@@ -36,7 +43,7 @@ export const COURSES = [
     level: 'Intermedio',
     duration: '8 semanas · 24 videos',
     students: 2100,
-    image: 'https://images.unsplash.com/photo-1547153760-18fc86324498?w=800&auto=format&fit=crop',
+    image: bachataImg,
     description:
       'Domina la conexión, el cuerpo ondulante y la musicalidad que caracterizan la bachata sensual moderna. Ideal para quienes ya conocen el paso básico y quieren llevar su baile al siguiente nivel.',
     modules: [
@@ -61,7 +68,7 @@ export const COURSES = [
     level: 'Todos los niveles',
     duration: '5 semanas · 15 videos',
     students: 890,
-    image: 'https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=800&auto=format&fit=crop',
+    image: hipHopImg,
     description:
       'Suéltate y encuentra tu propio estilo. Aprenderás grooves, isolaciones, footwork y cómo improvisar con confianza en cualquier cypher o pista.',
     modules: [
@@ -85,7 +92,7 @@ export const COURSES = [
     level: 'Principiante',
     duration: '6 semanas · 18 videos',
     students: 1450,
-    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&auto=format&fit=crop',
+    image: reggaetonImg,
     description:
       'Aprende a mover el cuerpo al ritmo del género urbano más popular del momento. Desde el paso básico hasta coreografías completas con actitud y estilo.',
     modules: [
@@ -109,7 +116,7 @@ export const COURSES = [
     level: 'Todos los niveles',
     duration: '4 semanas · 20 videos',
     students: 3200,
-    image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&auto=format&fit=crop',
+    image: zumbaImg,
     description:
       'El entrenamiento más divertido que harás en tu vida. Rutinas de cardio con música latina que te hacen olvidar que estás ejercitando. Sin necesidad de experiencia previa.',
     modules: [
@@ -133,7 +140,7 @@ export const COURSES = [
     level: 'Intermedio',
     duration: '7 semanas · 21 videos',
     students: 760,
-    image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&auto=format&fit=crop',
+    image: dancehallImg,
     description:
       'Empoderamiento y movimiento. Este curso está diseñado para mujeres que quieren dominar el dancehall con poder, ritmo y personalidad propia. Aprende el vocabulario de pasos auténticos del dancehall jamaicano.',
     modules: [

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import './AuthLayout.css';
 
 function AuthLayout({ tagline, description, image, children }) {
@@ -18,9 +19,9 @@ function AuthLayout({ tagline, description, image, children }) {
  
       {/* Panel derecho */}
       <div className="auth-layout__form-area">
-        <div className="auth-layout__logo">
+        <Link to="/" className="auth-layout__logo">
           <img src="/logoLargo.png" alt="Ritnova 360" />
-        </div>
+        </Link>
  
         {children}
       </div>

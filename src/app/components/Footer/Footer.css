@@ -86,3 +86,29 @@
   .footer__top { grid-template-columns: 1fr 1fr; }
   .footer { padding: 48px 24px 24px; }
 }
+
+@media (max-width: 480px) {
+  .footer__top {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .footer__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .footer__socials {
+    justify-content: center;
+  }
+
+  .footer__col {
+    align-items: center;
+  }
+
+  .footer__bottom {
+    flex-direction: column;
+    text-align: center;
+  }
+}

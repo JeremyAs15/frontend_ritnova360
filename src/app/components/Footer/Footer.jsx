@@ -10,9 +10,9 @@ function Footer() {
             La academia de danza online más vibrante de Colombia. Aprende, baila y transforma tu vida.
           </p>
           <div className="footer__socials">
-            <a href="https://www.instagram.com/" className="footer__social">Instagram</a>
-            <a href="https://www.tiktok.com/en/" className="footer__social">TikTok</a>
-            <a href="https://www.youtube.com/" className="footer__social">YouTube</a>
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" className="footer__social">Instagram</a>
+            <a href="https://www.tiktok.com/en/" target="_blank" rel="noopener noreferrer" className="footer__social">TikTok</a>
+            <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" className="footer__social">YouTube</a>
           </div>
         </div>
 

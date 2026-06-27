@@ -9,7 +9,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
-  min-height: 100vh;
+  min-height: 70vh;
   padding: 100px 64px 60px;
   gap: 48px;
   background: var(--color-bg);
@@ -344,9 +344,10 @@
 @media (max-width: 768px) {
   .hero {
     grid-template-columns: 1fr;
-    padding: 100px 24px 48px;
+    min-height: auto;
+    padding: 110px 24px 48px;
   }
-  .hero__img-grid { display: none; }
+  .hero__images { display: none; }
   .catalog { padding: 60px 24px; }
   .catalog__grid { grid-template-columns: 1fr; }
 }

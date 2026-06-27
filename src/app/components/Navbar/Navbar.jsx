@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './Navbar.css';
 
 /**
@@ -10,6 +10,7 @@ import './Navbar.css';
 function Navbar({ onCatalogClick }) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const isLoggedIn = !!localStorage.getItem('access_token');
 
   useEffect(() => {
@@ -18,12 +19,22 @@ function Navbar({ onCatalogClick }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleCatalogClick = () => {
+    setMenuOpen(false);
+    onCatalogClick?.();
+  };
+
+  const goTo = (path) => {
+    setMenuOpen(false);
+    navigate(path);
+  };
+
   return (
     <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
       {/* Logo */}
-      <div className="navbar__logo" onClick={() => navigate('/')}>
+      <Link to="/" className="navbar__logo" onClick={() => setMenuOpen(false)}>
         <img src="/logoLargo.png" alt="Ritnova 360" />
-      </div>
+      </Link>
 
       {/* Links */}
       <div className="navbar__links">
@@ -44,6 +55,34 @@ function Navbar({ onCatalogClick }) {
             Crear cuenta
           </button>
         </div>
+
+      {/* Botón hamburguesa (solo móvil) */}
+      <button
+        className={`navbar__toggle ${menuOpen ? 'navbar__toggle--open' : ''}`}
+        onClick={() => setMenuOpen((open) => !open)}
+        aria-label="Abrir menú"
+        aria-expanded={menuOpen}
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      {/* Menú móvil */}
+      <div className={`navbar__mobile-menu ${menuOpen ? 'navbar__mobile-menu--open' : ''}`}>
+        <button className="navbar__mobile-link" onClick={handleCatalogClick}>
+          Catálogo
+        </button>
+        <button className="navbar__mobile-link" onClick={() => goTo('/sobre-nosotros')}>
+          Sobre Nosotros
+        </button>
+        <button className="navbar__mobile-btn navbar__mobile-btn--ghost" onClick={() => goTo('/login')}>
+          Iniciar sesión
+        </button>
+        <button className="navbar__mobile-btn navbar__mobile-btn--primary" onClick={() => goTo('/signup')}>
+          Crear cuenta
+        </button>
+      </div>
       </nav>
   );
 }
