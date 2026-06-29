@@ -24,10 +24,9 @@ function Router() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPageWrapper />} />
-        <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
         <Route path="/admin/users" element={<AdminPage />} />
         <Route path="/curso/:id" element={<CoursePage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/perfil" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -3,23 +3,11 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --primary:      #ff6b35;
-    --brand-amber:  #f7931e;
-    --accent:       #e84393;
-    --brand-pink:   #e84393;
-    --brand-violet: #6c5ce7;
-    --background:   #fdf8f3;
-  }
-
   html {
     font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
-    background-color: var(--background);
-    color: #1a1a1a;
   }
 
   body {
-    min-height: 100vh;
-    background-color: var(--background);
+    @apply min-h-screen bg-background text-gray-900;
   }
 }

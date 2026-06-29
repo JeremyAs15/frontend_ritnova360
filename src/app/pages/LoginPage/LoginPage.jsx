@@ -41,7 +41,7 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         
         const role = data.user?.role;
         if (role === 'student') {
-          navigate('/profile');
+          navigate('/perfil');
         } else {
           navigate('/admin/users');
         }
@@ -83,7 +83,7 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         localStorage.setItem('refresh_token', data.refresh);
         const role = data.user?.role;
         if (role === 'student') {
-          navigate('/profile');
+          navigate('/perfil');
         } else {
           navigate('/admin/users');
         }
