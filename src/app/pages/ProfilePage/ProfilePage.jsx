@@ -30,7 +30,7 @@ function ProfilePage() {
   useEffect(() => {
     const token = localStorage.getItem('access_token');
 
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/profile/`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/users/profile/`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {
@@ -75,7 +75,7 @@ function ProfilePage() {
 
   const refreshToken = async () => {
     const refresh = localStorage.getItem('refresh_token');
-    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/token/refresh/`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/token/refresh/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh }),
@@ -96,7 +96,7 @@ function ProfilePage() {
     try {
       let token = localStorage.getItem('access_token');
 
-      let res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/profile/`, {
+      let res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/profile/`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -108,7 +108,7 @@ function ProfilePage() {
       // Si el token expiró, lo refresca y reintenta una vez
       if (res.status === 401) {
         token = await refreshToken();
-        res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/profile/`, {
+        res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/profile/`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,

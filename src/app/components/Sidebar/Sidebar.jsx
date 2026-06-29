@@ -1,18 +1,31 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, ShoppingCart, Package, User, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, BookOpen, ShoppingCart, Package, User, LogOut, ChevronLeft, ChevronRight, Users, ClipboardList, Settings } from 'lucide-react';
 import logoLargo from '/logoLargo.png';
 import './Sidebar.css';
 
-const NAV_ITEMS = [
-  { title: 'Dashboard',      url: '/dashboard',         icon: LayoutDashboard },
-  { title: 'Catálogo',       url: '/catalogo',          icon: BookOpen        },
-  { title: 'Carrito',        url: '/carrito',           icon: ShoppingCart    },
-  { title: 'Mis compras',    url: '/mis-compras',       icon: Package         },
-  { title: 'Mi perfil',      url: '/perfil',            icon: User            },
+// Ítems por defecto para estudiantes
+const STUDENT_NAV_ITEMS = [
+  { title: 'Dashboard',     url: '/dashboard',   icon: LayoutDashboard },
+  { title: 'Catálogo',      url: '/catalogo',    icon: BookOpen        },
+  { title: 'Carrito',       url: '/carrito',     icon: ShoppingCart    },
+  { title: 'Mis compras',   url: '/mis-compras', icon: Package         },
+  { title: 'Mi perfil',     url: '/perfil',      icon: User            },
 ];
 
-function Sidebar({ collapsed, onToggle, userName = 'Estudiante', userRole = 'Estudiante' }) {
+// Ítems para admin
+const ADMIN_NAV_ITEMS = [
+  { title: 'Dashboard',              url: '/admin',                  icon: LayoutDashboard },
+  { title: 'Usuarios internos',      url: '/admin/users',            icon: Users           },
+  { title: 'Catálogo coreografías',  url: '/admin/choreographies',   icon: ClipboardList   },
+  { title: 'Panel servicios',        url: '/admin/settings',         icon: Settings        },
+];
+
+export { STUDENT_NAV_ITEMS, ADMIN_NAV_ITEMS };
+
+function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudiante', navItems }) {
   const navigate = useNavigate();
+
+  const items = navItems || STUDENT_NAV_ITEMS;
 
   const initials = userName
     .split(' ')
@@ -22,7 +35,8 @@ function Sidebar({ collapsed, onToggle, userName = 'Estudiante', userRole = 'Est
     .toUpperCase();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     navigate('/login');
   };
 
@@ -44,10 +58,11 @@ function Sidebar({ collapsed, onToggle, userName = 'Estudiante', userRole = 'Est
           <p className="sidebar__nav-label">Navegación</p>
         )}
         <ul className="sidebar__nav-list">
-          {NAV_ITEMS.map(({ title, url, icon: Icon }) => (
+          {items.map(({ title, url, icon: Icon }) => (
             <li key={url}>
               <NavLink
                 to={url}
+                end={url === '/admin'}
                 className={({ isActive }) =>
                   `sidebar__nav-item ${isActive ? 'sidebar__nav-item--active' : ''}`
                 }
@@ -60,7 +75,7 @@ function Sidebar({ collapsed, onToggle, userName = 'Estudiante', userRole = 'Est
         </ul>
       </nav>
 
-      {/* Colapsar menú */}
+      {/* Toggle collapse */}
       <button className="sidebar__toggle" onClick={onToggle} aria-label="Colapsar menú">
         {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
