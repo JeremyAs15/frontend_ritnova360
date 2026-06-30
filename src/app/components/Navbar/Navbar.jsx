@@ -11,7 +11,23 @@ function Navbar({ onCatalogClick }) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const isLoggedIn = !!localStorage.getItem('access_token');
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('access_token'));
+  const [firstName, setFirstName] = useState(localStorage.getItem('first_name'));
+
+  useEffect(() => {
+    const syncAuth = () => {
+      setIsLoggedIn(!!localStorage.getItem('access_token'));
+      setFirstName(localStorage.getItem('first_name'));
+    };
+
+    window.addEventListener('storage', syncAuth);      // cambios desde otra pestaña
+    window.addEventListener('auth-change', syncAuth);   // cambios en la misma pestaña
+
+    return () => {
+      window.removeEventListener('storage', syncAuth);
+      window.removeEventListener('auth-change', syncAuth);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -47,16 +63,24 @@ function Navbar({ onCatalogClick }) {
       </div>
 
       {/* Acciones */}
-      <div className="navbar__actions">
-        <button className="navbar__btn navbar__btn--ghost" onClick={() => navigate('/login')}>
+      {!isLoggedIn ? (
+        <div className="navbar__actions">
+          <button className="navbar__btn navbar__btn--ghost" onClick={() => navigate('/login')}>
             Iniciar sesión
         </button>
         <button className="navbar__btn navbar__btn--primary" onClick={() => navigate('/signup')}>
             Crear cuenta
           </button>
         </div>
+      ) : (
+        <div className="navbar__actions">
+          <span className="navbar__welcome">
+            Hola, {firstName}
+          </span>
+        </div>
+      )}
 
-      {/* Botón hamburguesa (solo móvil) */}
+      {/* Botón hamburguesa*/}
       <button
         className={`navbar__toggle ${menuOpen ? 'navbar__toggle--open' : ''}`}
         onClick={() => setMenuOpen((open) => !open)}
@@ -76,14 +100,22 @@ function Navbar({ onCatalogClick }) {
         <button className="navbar__mobile-link" onClick={() => goTo('/sobre-nosotros')}>
           Sobre Nosotros
         </button>
-        <button className="navbar__mobile-btn navbar__mobile-btn--ghost" onClick={() => goTo('/login')}>
-          Iniciar sesión
-        </button>
-        <button className="navbar__mobile-btn navbar__mobile-btn--primary" onClick={() => goTo('/signup')}>
-          Crear cuenta
-        </button>
+        {!isLoggedIn ? (
+          <>
+            <button className="navbar__mobile-btn navbar__mobile-btn--ghost" onClick={() => goTo('/login')}>
+              Iniciar sesión
+            </button>
+            <button className="navbar__mobile-btn navbar__mobile-btn--primary" onClick={() => goTo('/signup')}>
+              Crear cuenta
+            </button>
+          </>
+        ) : (
+          <span className="navbar__mobile-user">
+            Hola, {firstName}
+          </span>
+        )}
       </div>
-      </nav>
+    </nav>
   );
 }
 

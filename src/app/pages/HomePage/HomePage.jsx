@@ -19,6 +19,7 @@ function HomePage() {
   const [genre, setGenre] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const isAuthenticated = !!localStorage.getItem("access_token");
 
   const GENRES = [...new Set(COURSES.map(c => c.genre))];
   const DIFFICULTIES = ['Principiante', 'Intermedio', 'Todos los niveles'];
@@ -59,7 +60,6 @@ function HomePage() {
     <div className="home-page">
       <Navbar onCatalogClick={scrollToCatalog} />
 
-      {/* Hero */}
       <section className="hero">
         <div className="hero__content">
           <div className="hero__badge">
@@ -82,12 +82,14 @@ function HomePage() {
             >
               Explorar catálogo →
             </button>
-            <button
-              className="hero__btn hero__btn--ghost"
-              onClick={() => navigate('/login')}
-            >
-              ▷ Iniciar sesión
-            </button>
+            {!isAuthenticated && (
+              <button
+                className="hero__btn hero__btn--ghost"
+                onClick={() => navigate('/login')}
+              >
+                ▷ Iniciar sesión
+              </button>
+            )}
           </div>
         </div>
 
@@ -194,7 +196,6 @@ function HomePage() {
           )}
         </div>
 
-        {/* Grid o empty state */}
         {paginated.length === 0 ? (
           <div className="catalog__empty">
             <span className="catalog__empty-icon">🕺</span>

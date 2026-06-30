@@ -19,7 +19,6 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
   const handleLogin = async (credentials) => {
     setLoginError(null);
     try {
-      // Petición al endpoint personalizado de inicio de sesión de Django
       const response = await fetch(`${API_BASE_URL}/api/users/login/`, {
         method: 'POST',
         headers: {
@@ -28,16 +27,18 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         body: JSON.stringify({
           email: credentials.email,
           password: credentials.password,
-          captcha_token: credentials.captcha_token, // Se envía el token aquí
+          captcha_token: credentials.captcha_token,
         }),
       });
 
       const data = await response.json();
+      console.log(data);
 
       if (response.ok) {
-        // Almacenar los tokens JWT obtenidos de forma segura
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
+        localStorage.setItem("first_name", data.user.first_name);
+        window.dispatchEvent(new Event('auth-change'));
         
         const role = data.user?.role;
         if (role === 'student') {
@@ -46,7 +47,6 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
           navigate('/admin/users');
         }
       } else {
-        // Manejo de errores específicos (ej. CAPTCHA incorrecto o credenciales inválidas)
         if (data.captcha) {
           setLoginError(data.captcha);
         } else if (data.detail) {
@@ -64,15 +64,13 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
     console.log("Token recibido:", googleAccessToken);
     setLoginError(null);
     try {
-      // Nota: Si usaste useGoogleLogin del lado del cliente, puedes mandar el token de acceso
-      // al backend. Adaptaremos el backend para validar el token que recibimos.
       const response = await fetch(`${API_BASE_URL}/api/users/google-login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          access_token: googleAccessToken, // Enviamos el token al endpoint del backend
+          access_token: googleAccessToken,
         }),
       });
 
@@ -81,6 +79,8 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
       if (response.ok) {
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
+        localStorage.setItem("first_name", data.user.first_name);
+
         const role = data.user?.role;
         if (role === 'student') {
           navigate('/perfil');

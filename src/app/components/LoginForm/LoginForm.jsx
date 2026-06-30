@@ -58,7 +58,6 @@ function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
     });
   };
 
-  // Implementación del login de Google usando un flujo implícito para obtener el token de identidad
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
       onGoogleSubmit?.(tokenResponse.access_token);
@@ -106,7 +105,6 @@ function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
           </button>
         }
       />
-      {/* Renderizado del Widget de Turnstile */}
       <div className="form__captcha-container" style={{ marginBottom: '15px', display: 'flex', justifyContent: 'center' }}>
         <Turnstile
           siteKey={siteKey}
@@ -130,7 +128,7 @@ function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
         <span />
       </div>
 
-      {/* Botón de inicio de sesión con Google actualizado */}
+      {/* Botón de inicio de sesión con Google*/}
       <button type="button" className="form__google" onClick={() => handleGoogleLogin()}>
         <GoogleIcon /> Google
       </button>

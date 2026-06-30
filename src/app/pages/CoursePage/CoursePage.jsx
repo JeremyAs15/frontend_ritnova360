@@ -74,7 +74,6 @@ function CoursePage() {
 
       <main className="course-page__main">
 
-        {/* ── Breadcrumb ── */}
         <div className="course-page__breadcrumb">
           <button className="course-page__back" onClick={() => navigate('/')}>
             <ArrowLeftIcon /> Volver al catálogo
@@ -82,7 +81,6 @@ function CoursePage() {
           <span className="course-page__genre-tag">{course.genre}</span>
         </div>
 
-        {/* ── Hero del curso ── */}
         <section className="course-hero">
           <div className="course-hero__info">
             <h1 className="course-hero__title">{course.title}</h1>

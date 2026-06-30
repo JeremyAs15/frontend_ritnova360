@@ -12,7 +12,6 @@ function SignUpPage({ onSignUp, onLogin }) {
   const handleGoogleSignUp = async (googleAccessToken) => {
     setError(null);
     try {
-      // Petición al endpoint común del backend para autenticación con Google
       const response = await fetch(`${API_BASE_URL}/api/users/google-login/`, {
         method: 'POST',
         headers: {

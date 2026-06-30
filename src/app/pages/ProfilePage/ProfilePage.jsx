@@ -105,7 +105,6 @@ function ProfilePage() {
         body: JSON.stringify(form),
       });
 
-      // Si el token expiró, lo refresca y reintenta una vez
       if (res.status === 401) {
         token = await refreshToken();
         res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/profile/`, {

@@ -124,7 +124,7 @@
 }
 
 /* ═══════════════════════════════════════════
-   Paginación — reutiliza clases de HomePage
+   Paginación
 ═══════════════════════════════════════════ */
 .admin-pagination {
   display: flex;
@@ -312,9 +312,6 @@
   line-height: 1.6;
 }
 
-/* ═══════════════════════════════════════════
-   Toast
-═══════════════════════════════════════════ */
 .admin-toast {
   position: fixed;
   bottom: 24px;

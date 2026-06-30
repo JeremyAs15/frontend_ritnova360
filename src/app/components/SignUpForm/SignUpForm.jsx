@@ -12,7 +12,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
  * Props:
  *  - onSubmit  {function}  Recibe el objeto { nombres, apellidos, email, password }
  *  - onGoogleSubmit  {function}  Recibe el token de acceso de Google tras la autenticación 
- *  - onLogin   {function}  Navegar al login (link "Inicia sesión")
+ *  - onLogin   {function}  Navegar al login
  */
 function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
   const [form, setForm] = useState({
@@ -87,10 +87,8 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         // Limpiamos el formulario
         setForm({ nombres: '', apellidos: '', email: '', password: '' });
         setAccepted(false);
-        // Si el componente padre necesita saber que se registró, lo llamamos
         onSubmit?.(form);
       } else {
-        // Extraer mensajes de error de Django (ej. "El correo ya existe")
         const errorMessages = Object.values(data).flat().join(' | ');
         setServerStatus({ loading: false, error: errorMessages, success: null });
       }
@@ -226,7 +224,6 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         type="button"
         className="form__google" 
         onClick={() => {
-          console.log("Clic en el botón de Google detectado"); // Línea de depuración temporal
           handleGoogleLogin();
         }}
       >

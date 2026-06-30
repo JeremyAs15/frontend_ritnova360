@@ -32,9 +32,6 @@
   color: var(--color-text-muted);
 }
 
-/* ═══════════════════════════════════════════
-   Breadcrumb
-═══════════════════════════════════════════ */
 .course-page__breadcrumb {
   display: flex;
   align-items: center;
@@ -73,9 +70,6 @@
   border-radius: var(--radius-full);
 }
 
-/* ═══════════════════════════════════════════
-   Hero del curso
-═══════════════════════════════════════════ */
 .course-hero {
   display: grid;
   grid-template-columns: 1fr 340px;
@@ -84,7 +78,6 @@
   margin-bottom: 56px;
 }
 
-/* Info column */
 .course-hero__title {
   font-size: 2rem;
   font-weight: 700;
