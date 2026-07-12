@@ -20,7 +20,12 @@ const ADMIN_NAV_ITEMS = [
   { title: 'Panel servicios',        url: '/admin/settings',         icon: Settings        },
 ];
 
-export { STUDENT_NAV_ITEMS, ADMIN_NAV_ITEMS };
+const STAFF_NAV_ITEMS = [
+  { title: 'Mis coreografías', url: '/coreografias/nueva', icon: ClipboardList },
+  { title: 'Mi perfil',             url: '/perfil',             icon: User          },
+];
+
+export { STUDENT_NAV_ITEMS, ADMIN_NAV_ITEMS, STAFF_NAV_ITEMS };
 
 function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudiante', navItems }) {
   const navigate = useNavigate();
