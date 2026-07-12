@@ -248,44 +248,6 @@
   background: #ffffff;
 }
 
-/* ── Intereses ── */
-.profile-section--interests {
-  border-color: var(--color-border);
-  background: linear-gradient(135deg, #fff 60%, #fce4ec);
-}
-
-.profile-interests__subtitle {
-  font-size: 1.05rem;
-  color: var(--color-text-muted);
-  margin: 0 0 16px;
-}
-
-.profile-interests__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.profile-interest-tag {
-  padding: 6px 16px;
-  border-radius: var(--radius-full);
-  font-size: 1.05rem;
-  font-weight: 500;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-white);
-  color: var(--color-text-muted);
-  cursor: default;
-  transition: all 0.15s;
-}
-
-.profile-interest-tag--active {
-  background: var(--gradient-pink);
-  border-color: transparent;
-  color: #fff;
-  font-weight: 600;
-  box-shadow: var(--shadow-pink);
-}
-
 /* ═══════════════════════════════════════════
    Alertas de guardado
 ═══════════════════════════════════════════ */
@@ -360,6 +322,49 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Subtítulo dentro del formulario de contraseña */
+.profile-password-form__subtitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary); /* O el color naranja de tu marca */
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Contenedor del formulario cuando se edita */
+.profile-password-form {
+  background-color: #fff9f5; /* Un fondo muy suave para diferenciar la zona */
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px dashed #ffd8c4;
+  margin-top: 10px;
+}
+
+/* Botón de actualizar contraseña */
+.profile-btn--password-update {
+  margin-top: 15px;
+  padding: 8px 16px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.profile-btn--password-update:hover:not(:disabled) {
+  background-color: #000;
+  transform: translateY(-1px);
+}
+
+.profile-btn--password-update:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
 /* ═══════════════════════════════════════════

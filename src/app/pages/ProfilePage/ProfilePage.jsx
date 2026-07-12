@@ -40,6 +40,8 @@ function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({old_password: '', new_password: '', confirm_password: ''});
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -78,6 +80,11 @@ function ProfilePage() {
       phone_number: profile.phone_number || '',
       birth_date:   profile.birth_date   || '',
       genre:        profile.genre        || '',
+    });
+    setPasswordForm({ 
+    old_password: '', 
+    new_password: '', 
+    confirm_password: '' 
     });
     setSaveError(null);
     setEditing(false);
@@ -147,6 +154,41 @@ function ProfilePage() {
       setSaving(false);
     }
   };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      const token = localStorage.getItem('access_token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/change-password/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(passwordForm),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Manejar errores de validación del backend
+        const errorMsg = data.old_password ? data.old_password[0] : 
+                        data.confirm_password ? data.confirm_password[0] : 
+                        'Error al cambiar la contraseña';
+        throw new Error(errorMsg);
+      }
+
+      setSaveSuccess(true);
+      setPasswordForm({ old_password: '', new_password: '', confirm_password: '' });
+      setIsChangingPassword(false);
+    } catch (err) {
+      setSaveError(err.message);
+    }
+  };
+
 
   if (loading) return (
     <div className="profile-layout">
@@ -310,21 +352,69 @@ function ProfilePage() {
                   </div>
                 </div>
               </section>
-
-              {/* Mis intereses */}
-              <section className="profile-section profile-section--interests">
+              {/* Sección de Seguridad */}
+              <section className="profile-section">
                 <div className="profile-section__title-row">
-                  <span className="profile-section__heart">♥</span>
-                  <h2 className="profile-section__title">Mis intereses</h2>
+                  <User size={18} className="profile-section__icon" />
+                  <h2 className="profile-section__title">Seguridad</h2>
                 </div>
-                <p className="profile-interests__subtitle">Tus estilos de baile favoritos</p>
-                <div className="profile-interests__tags">
-                  {DANCE_GENRES.map(genre => (
-                    <span key={genre} className="profile-interest-tag">{genre}</span>
-                  ))}
+
+                <div className="profile-password-container">
+                  {!editing ? (
+                    <div className="profile-field">
+                      <label className="profile-field__label">Contraseña</label>
+                      <div className="profile-field__value profile-field__value--locked">
+                        ••••••••••••
+                        <span className="profile-field__lock"></span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="profile-password-form">
+                      <p className="profile-password-form__subtitle">Cambiar contraseña</p>
+                      <div className="profile-form-grid">
+                        <div className="profile-field">
+                          <label className="profile-field__label">Contraseña actual</label>
+                          <input
+                            type="password"
+                            className="profile-field__input"
+                            value={passwordForm.old_password}
+                            onChange={(e) => setPasswordForm({...passwordForm, old_password: e.target.value})}
+                            placeholder="Introduce tu clave actual"
+                          />
+                        </div>
+                        <div className="profile-field">
+                          <label className="profile-field__label">Nueva contraseña</label>
+                          <input
+                            type="password"
+                            className="profile-field__input"
+                            value={passwordForm.new_password}
+                            onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
+                            placeholder="Mínimo 6 caracteres"
+                          />
+                        </div>
+                        <div className="profile-field">
+                          <label className="profile-field__label">Confirmar nueva contraseña</label>
+                          <input
+                            type="password"
+                            className="profile-field__input"
+                            value={passwordForm.confirm_password}
+                            onChange={(e) => setPasswordForm({...passwordForm, confirm_password: e.target.value})}
+                            placeholder="Repite la nueva clave"
+                          />
+                        </div>
+                      </div>
+                      
+                      <button 
+                        className="profile-btn--password-update" 
+                        onClick={handleChangePassword}
+                        disabled={saving || !passwordForm.old_password}
+                      >
+                        {saving ? 'Procesando...' : 'Actualizar Contraseña'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </section>
-
             </div>
           </div>
 
