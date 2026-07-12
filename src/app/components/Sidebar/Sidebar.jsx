@@ -12,15 +12,43 @@ const STUDENT_NAV_ITEMS = [
   { title: 'Mi perfil',     url: '/perfil',      icon: User            },
 ];
 
-// Ítems para admin
+// Ítems para profesor
+const TEACHER_NAV_ITEMS = [
+  { title: 'Dashboard',     url: '/dashboard',   icon: LayoutDashboard },
+  { title: 'Mi perfil',     url: '/perfil',      icon: User            },
+];
+
+// Ítems para admin / director
 const ADMIN_NAV_ITEMS = [
-  { title: 'Dashboard',              url: '/admin',                  icon: LayoutDashboard },
+  { title: 'Dashboard',              url: '/dashboard',              icon: LayoutDashboard },
   { title: 'Usuarios internos',      url: '/admin/users',            icon: Users           },
   { title: 'Catálogo coreografías',  url: '/admin/choreographies',   icon: ClipboardList   },
   { title: 'Panel servicios',        url: '/admin/settings',         icon: Settings        },
 ];
 
-export { STUDENT_NAV_ITEMS, ADMIN_NAV_ITEMS };
+const ROLE_LABELS = {
+  student: 'Estudiante',
+  teacher: 'Profesor',
+  admin: 'Administrador',
+  director: 'Director',
+};
+
+const NAV_ITEMS_BY_ROLE = {
+  student: STUDENT_NAV_ITEMS,
+  teacher: TEACHER_NAV_ITEMS,
+  admin: ADMIN_NAV_ITEMS,
+  director: ADMIN_NAV_ITEMS,
+};
+
+/** Resuelve los ítems de navegación y la etiqueta visible según el código de rol del JWT. */
+function getSidebarConfigForRole(role) {
+  return {
+    navItems: NAV_ITEMS_BY_ROLE[role] ?? STUDENT_NAV_ITEMS,
+    roleLabel: ROLE_LABELS[role] ?? 'Usuario',
+  };
+}
+
+export { STUDENT_NAV_ITEMS, TEACHER_NAV_ITEMS, ADMIN_NAV_ITEMS, getSidebarConfigForRole };
 
 function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudiante', navItems }) {
   const navigate = useNavigate();
@@ -62,7 +90,7 @@ function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudi
             <li key={url}>
               <NavLink
                 to={url}
-                end={url === '/admin'}
+                end
                 className={({ isActive }) =>
                   `sidebar__nav-item ${isActive ? 'sidebar__nav-item--active' : ''}`
                 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, ShoppingBag, User } from 'lucide-react';
-import Sidebar from '../../components/Sidebar/Sidebar';
+import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import InputField from '../../components/InputField/InputField';
 import './ProfilePage.css';
 
@@ -154,6 +154,7 @@ function ProfilePage() {
 
   const fullName = `${profile.first_name} ${profile.last_name}`;
   const joinDate = new Date(profile.date_joined).toLocaleDateString('es-CO');
+  const { navItems, roleLabel } = getSidebarConfigForRole(profile.role);
 
   return (
     <div className="profile-layout">
@@ -161,7 +162,8 @@ function ProfilePage() {
         collapsed={collapsed}
         onToggle={() => setCollapsed(c => !c)}
         userName={fullName}
-        userRole="Estudiante"
+        userRole={roleLabel}
+        navItems={navItems}
       />
 
       <main className="profile-main">
