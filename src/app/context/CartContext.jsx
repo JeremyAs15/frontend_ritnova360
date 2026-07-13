@@ -176,9 +176,22 @@ export function CartProvider({ children }) {
     }
   }, [fetchWithAuth]);
 
-  const clearCart = useCallback(() => {
-    setCartItems([]);
-  }, []);
+  const clearCart = useCallback(async () => {
+    setCartError(null);
+    try {
+      setCartItems([]);
+      await Promise.all(
+        cartItems.map((item) =>
+          fetchWithAuth(`${API_BASE_URL}/api/academy/cart/${item.id}/`, {
+            method: 'DELETE',
+          })
+        )
+      );
+      await refreshCart();
+    } catch {
+      setCartError('Error al vaciar el carrito');
+    }
+  }, [cartItems, fetchWithAuth, refreshCart]);
 
   const isInCart = useCallback(
     (courseId) => cartItems.some((item) => item.id === courseId),
