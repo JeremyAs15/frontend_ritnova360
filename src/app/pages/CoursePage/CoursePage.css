@@ -392,3 +392,42 @@
     padding: 12px 14px;
   }
 }
+
+/* ── Toast ── */
+.course-page__toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  z-index: 9999;
+  animation: toast-in 300ms ease-out;
+}
+
+.course-page__toast--success {
+  background: #16a34a;
+  color: #fff;
+}
+
+.course-page__toast--error {
+  background: #dc2626;
+  color: #fff;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
