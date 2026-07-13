@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, ShoppingCart, Tag, ArrowLeft, CheckCircle, Calendar, Sparkles } from 'lucide-react';
+import { Trash2, ShoppingCart, ArrowLeft, CheckCircle, Calendar, Sparkles } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import { useCart } from '../../context/CartContext';
 import './CartPage.css';
@@ -14,12 +14,6 @@ function CartPage() {
   const [profile, setProfile] = useState(null);
   const [profileError, setProfileError] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
-
-  // Estados de cupón de descuento
-  const [couponCode, setCouponCode] = useState('');
-  const [discountPercent, setDiscountPercent] = useState(0);
-  const [couponError, setCouponError] = useState('');
-  const [couponSuccess, setCouponSuccess] = useState('');
 
   // Estado del modal de éxito de pago
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -41,32 +35,6 @@ function CartPage() {
       .then(setProfile)
       .catch((err) => setProfileError(err.message));
   }, [navigate]);
-
-  const handleApplyCoupon = () => {
-    setCouponError('');
-    setCouponSuccess('');
-    
-    const code = couponCode.trim().toUpperCase();
-
-    if (!code) {
-      setCouponError('Por favor ingresa un código.');
-      return;
-    }
-
-    if (code === 'RITNOVA10') {
-      setDiscountPercent(0.10);
-      setCouponSuccess('¡Cupón RITNOVA10 aplicado! 10% de descuento.');
-    } else if (code === 'RITNOVA20') {
-      setDiscountPercent(0.20);
-      setCouponSuccess('¡Cupón RITNOVA20 aplicado! 20% de descuento.');
-    } else if (code === 'BAILE50') {
-      setDiscountPercent(0.50);
-      setCouponSuccess('¡Cupón BAILE50 aplicado! 50% de descuento especial.');
-    } else {
-      setCouponError('El cupón ingresado no es válido.');
-      setDiscountPercent(0);
-    }
-  };
 
   const handleCheckout = () => {
     // Abrir modal de simulación de pago exitoso
@@ -105,10 +73,6 @@ function CartPage() {
 
   const { navItems, roleLabel } = getSidebarConfigForRole(profile.role);
   const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email;
-
-  // Cálculos de precios
-  const discountAmount = cartTotal * discountPercent;
-  const finalTotal = cartTotal - discountAmount;
 
   return (
     <div className="dashboard-layout">
@@ -194,39 +158,11 @@ function CartPage() {
                     <span className="cart-summary-val">{formatCOP(cartTotal)}</span>
                   </div>
 
-                  {discountPercent > 0 && (
-                    <div className="cart-summary-row cart-summary-row--discount">
-                      <span className="cart-summary-label">Descuento ({discountPercent * 100}%)</span>
-                      <span className="cart-summary-val">-{formatCOP(discountAmount)}</span>
-                    </div>
-                  )}
-
-                  {/* Campo de Cupón */}
-                  <div className="cart-coupon-section">
-                    <p className="cart-coupon-title">
-                      <Tag size={14} /> ¿Tienes un cupón de descuento?
-                    </p>
-                    <div className="cart-coupon-input-wrap">
-                      <input
-                        type="text"
-                        placeholder="Ej: RITNOVA10, BAILE50"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
-                        className="cart-coupon-input"
-                      />
-                      <button className="cart-coupon-apply-btn" onClick={handleApplyCoupon}>
-                        Aplicar
-                      </button>
-                    </div>
-                    {couponError && <p className="cart-coupon-msg cart-coupon-msg--error">{couponError}</p>}
-                    {couponSuccess && <p className="cart-coupon-msg cart-coupon-msg--success">{couponSuccess}</p>}
-                  </div>
-
                   <hr className="cart-summary-divider" />
 
                   <div className="cart-summary-row cart-summary-row--total">
                     <span className="cart-summary-total-label">Total a pagar</span>
-                    <span className="cart-summary-total-val">{formatCOP(finalTotal)}</span>
+                    <span className="cart-summary-total-val">{formatCOP(cartTotal)}</span>
                   </div>
 
                   <button className="cart-checkout-btn" onClick={handleCheckout}>
@@ -272,7 +208,7 @@ function CartPage() {
               </ul>
               <div className="checkout-summary-total">
                 <span>Total pagado:</span>
-                <strong>{formatCOP(finalTotal)}</strong>
+                <strong>{formatCOP(cartTotal)}</strong>
               </div>
             </div>
 

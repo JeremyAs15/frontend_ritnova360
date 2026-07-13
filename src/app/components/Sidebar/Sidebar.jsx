@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, ShoppingCart, Package, User, LogOut, ChevronLeft, ChevronRight, Users, ClipboardList, Settings } from 'lucide-react';
 import logoLargo from '/logoLargo.png';
+import { useCart } from '../../context/CartContext';
 import './Sidebar.css';
 
 // Ítems por defecto para estudiantes
@@ -53,6 +54,8 @@ export { STUDENT_NAV_ITEMS, ADMIN_NAV_ITEMS, STAFF_NAV_ITEMS, getSidebarConfigFo
 
 function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudiante', navItems }) {
   const navigate = useNavigate();
+  const { cartItems } = useCart();
+  const cartCount = cartItems?.length || 0;
 
   const items = navItems || STUDENT_NAV_ITEMS;
 
@@ -97,8 +100,20 @@ function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudi
                   `sidebar__nav-item ${isActive ? 'sidebar__nav-item--active' : ''}`
                 }
               >
-                <Icon className="sidebar__nav-icon" size={18} />
+                <div className="sidebar__nav-icon-wrapper">
+                  <Icon className="sidebar__nav-icon" size={18} />
+                  {url === '/carrito' && cartCount > 0 && collapsed && (
+                    <span className="sidebar__cart-badge sidebar__cart-badge--collapsed">
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
                 {!collapsed && <span className="sidebar__nav-label-text">{title}</span>}
+                {url === '/carrito' && cartCount > 0 && !collapsed && (
+                  <span className="sidebar__cart-badge">
+                    {cartCount}
+                  </span>
+                )}
               </NavLink>
             </li>
           ))}
