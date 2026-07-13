@@ -40,15 +40,9 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         localStorage.setItem("first_name", data.user.first_name);
         localStorage.setItem("role", data.user.role);
         window.dispatchEvent(new Event('auth-change'));
-        
-        const role = data.user?.role;
-        if (role === 'student') {
-          navigate('/perfil');
-        } else if (role === 'teacher' || role === 'director') {
-          navigate('/coreografias/nueva');
-        } else {
-          navigate('/admin/users');
-        }
+
+        // El dashboard se resuelve internamente según el rol del usuario logueado.
+        navigate('/dashboard');
       } else {
         if (data.captcha) {
           setLoginError(data.captcha);
@@ -83,15 +77,9 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         localStorage.setItem('access_token', data.access);
         localStorage.setItem('refresh_token', data.refresh);
         localStorage.setItem("first_name", data.user.first_name);
+        window.dispatchEvent(new Event('auth-change'));
 
-        const role = data.user?.role;
-        if (role === 'student') {
-          navigate('/perfil');
-        } else if (role === 'teacher' || role === 'director') {
-          navigate('/coreografias/nueva');
-        } else {
-          navigate('/admin/users');
-        }
+        navigate('/dashboard');
       } else {
         setLoginError(data.detail || 'Fallo la autenticación con Google.');
       }

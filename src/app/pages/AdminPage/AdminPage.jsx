@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, AlertTriangle, CheckCircle, XCircle, X } from 'lucide-react';
-import Sidebar, { ADMIN_NAV_ITEMS } from '../../components/Sidebar/Sidebar';
+import { Plus, AlertTriangle, CheckCircle, XCircle, X } from 'lucide-react';
+import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import UsersTable from '../../components/UsersTable/UsersTable';
 import UsersFilters from '../../components/UsersFilters/UsersFilters';
-import { getUserRoleFromToken } from '../../utils/auth';
 import './AdminPage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -12,7 +11,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 /* ═══════════════════════════════════════════
    AdminUsers
 ═══════════════════════════════════════════ */
-function AdminUsers({ fetchWithAuth }) {
+function AdminUsers({ fetchWithAuth, currentRole }) {
   const [users, setUsers] = useState([]);
   const [q, setQ] = useState('');
   const [roleF, setRoleF] = useState('todos');
@@ -35,8 +34,6 @@ function AdminUsers({ fetchWithAuth }) {
   const [editErrors, setEditErrors] = useState({});
   const [editFeedback, setEditFeedback] = useState(null);
   const [editServerLoading, setEditServerLoading] = useState(false);
-
-  const [currentRole] = useState(() => getUserRoleFromToken(localStorage.getItem('access_token')) ?? 'admin');
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -417,10 +414,21 @@ function AdminUsers({ fetchWithAuth }) {
 export default function AdminPage() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
-    if (!token) navigate('/login');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    fetch(`${API_BASE_URL}/api/users/profile/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then(setProfile)
+      .catch(() => {}); // Si falla, el Sidebar cae a sus valores por defecto.
   }, [navigate]);
 
   const refreshAccessToken = useCallback(async () => {
@@ -456,17 +464,20 @@ export default function AdminPage() {
     return response;
   }, [redirectToLogin, refreshAccessToken]);
 
+  const { navItems, roleLabel } = getSidebarConfigForRole(profile?.role);
+  const fullName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email : 'Usuario';
+
   return (
     <div className="admin-layout">
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(c => !c)}
-        userName="Admin User"
-        userRole="Administrador"
-        navItems={ADMIN_NAV_ITEMS}
+        userName={fullName}
+        userRole={roleLabel}
+        navItems={navItems}
       />
       <main className="admin-main">
-        <AdminUsers fetchWithAuth={fetchWithAuth} />
+        <AdminUsers fetchWithAuth={fetchWithAuth} currentRole={profile?.role} />
       </main>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, ShoppingBag, User } from 'lucide-react';
-import Sidebar, { STUDENT_NAV_ITEMS, ADMIN_NAV_ITEMS, STAFF_NAV_ITEMS } from '../../components/Sidebar/Sidebar';
+import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import InputField from '../../components/InputField/InputField';
 import './ProfilePage.css';
 
@@ -15,20 +15,6 @@ function StatCard({ icon: Icon, label, value }) {
     </div>
   );
 }
-
-const ROLE_LABELS = {
-  student: 'Estudiante',
-  teacher: 'Profesor',
-  director: 'Director',
-  admin: 'Administrador',
-};
-
-const NAV_ITEMS_BY_ROLE = {
-  student: STUDENT_NAV_ITEMS,
-  teacher: STAFF_NAV_ITEMS,
-  director: STAFF_NAV_ITEMS,
-  admin: ADMIN_NAV_ITEMS,
-};
 
 function ProfilePage() {
   const [collapsed, setCollapsed] = useState(false);
@@ -210,6 +196,7 @@ function ProfilePage() {
 
   const fullName = `${profile.first_name} ${profile.last_name}`;
   const joinDate = new Date(profile.date_joined).toLocaleDateString('es-CO');
+  const { navItems, roleLabel } = getSidebarConfigForRole(profile.role);
 
   return (
     <div className="profile-layout">
@@ -217,8 +204,8 @@ function ProfilePage() {
         collapsed={collapsed}
         onToggle={() => setCollapsed(c => !c)}
         userName={fullName}
-        userRole={ROLE_LABELS[profile.role] || 'Usuario'}
-        navItems={NAV_ITEMS_BY_ROLE[profile.role]}
+        userRole={roleLabel}
+        navItems={navItems}
       />
 
       <main className="profile-main">

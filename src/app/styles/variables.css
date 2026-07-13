@@ -57,4 +57,15 @@
   --alert-success-color: #2e7d32;
   --alert-success-bg:    #e8f5e9;
   --alert-success-border: #a5d6a7;
+
+  /* Paleta de gráficos (dashboard) — naranja de marca + tonos neutros, sin rosa */
+  --chart-primary:       var(--color-orange);
+  --chart-primary-soft:  #fed7aa;
+  --chart-amber:         #d97706;
+  --chart-slate:         #94a3b8;
+  --chart-stone:         #78716c;
+  --chart-stone-dark:    #57534e;
+  --chart-neutral-light: #cbd5e1;
+  --chart-grid-line:     #e5e7eb;
+  --chart-categorical: var(--chart-primary), var(--chart-amber), var(--chart-slate), var(--chart-stone), var(--chart-stone-dark), var(--chart-neutral-light);
 }
