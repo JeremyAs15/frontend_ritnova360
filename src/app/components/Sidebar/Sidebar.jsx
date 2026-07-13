@@ -6,7 +6,7 @@ import './Sidebar.css';
 // Ítems por defecto para estudiantes
 const STUDENT_NAV_ITEMS = [
   { title: 'Dashboard',     url: '/dashboard',   icon: LayoutDashboard },
-  { title: 'Catálogo',      url: '/catalogo',    icon: BookOpen        },
+  { title: 'Catálogo',      url: '/',            icon: BookOpen        },
   { title: 'Carrito',       url: '/carrito',     icon: ShoppingCart    },
   { title: 'Mis compras',   url: '/mis-compras', icon: Package         },
   { title: 'Mi perfil',     url: '/perfil',      icon: User            },
@@ -91,6 +91,7 @@ function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudi
             <li key={url}>
               <NavLink
                 to={url}
+                state={{ scrollToCatalog: title === 'Catálogo' }}
                 end
                 className={({ isActive }) =>
                   `sidebar__nav-item ${isActive ? 'sidebar__nav-item--active' : ''}`

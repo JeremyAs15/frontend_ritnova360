@@ -336,6 +336,42 @@
   }
 }
 
+.home-page--logged .navbar {
+  width: 100%;
+  left: 0;
+  position: sticky;
+}
+
+.home-page--logged .hero {
+  min-height: 70vh;
+}
+
+.catalog--app {
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+.catalog--app .catalog__filters-container {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.catalog--app .catalog__filters {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+
+.catalog--app .catalog__grid, 
+.catalog--app .pagination {
+  background: transparent;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .catalog__grid { grid-template-columns: repeat(2, 1fr); }
