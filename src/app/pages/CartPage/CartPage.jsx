@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, ArrowLeft, CheckCircle, Sparkles, AlertCircle } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, CheckCircle, Sparkles, AlertCircle, Trash2 } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import { useCart } from '../../context/CartContext';
 import './CartPage.css';
@@ -9,7 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function CartPage() {
   const navigate = useNavigate();
-  const { cartItems, cartTotal, formatCOP, cartError, cartLoading, cartCheckoutLoading, refreshCart, checkout, clearCart } = useCart();
+  const { cartItems, cartTotal, formatCOP, cartError, cartLoading, cartCheckoutLoading, refreshCart, checkout, clearCart, removeFromCart } = useCart();
 
   const [profile, setProfile] = useState(null);
   const [profileError, setProfileError] = useState(null);
@@ -154,6 +154,9 @@ function CartPage() {
 
                       <div className="cart-item-price-actions">
                         <span className="cart-item-price">${course.price} COP</span>
+                        <button className="cart-item-remove-btn" onClick={() => removeFromCart(course.id)} title="Eliminar del carrito">
+                          <Trash2 size={18} />
+                        </button>
                       </div>
                     </div>
                   ))}

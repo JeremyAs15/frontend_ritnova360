@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════
-   CartPage Styling (Ritnova 360 Design System)
-   ═══════════════════════════════════════════ */
-
 .cart-page-content {
   max-width: 1100px;
   width: 100%;
@@ -22,7 +18,7 @@
   }
 }
 
-/* ── Breadcrumb ── */
+
 .cart-breadcrumb {
   display: flex;
   align-items: center;
@@ -60,7 +56,7 @@
   font-weight: 500;
 }
 
-/* ── Title ── */
+
 .cart-page-title {
   font-size: 2.25rem;
   font-weight: 700;
@@ -69,7 +65,7 @@
   margin: 0 0 28px;
 }
 
-/* ── Error Banner ── */
+
 .cart-error-banner {
   display: flex;
   align-items: center;
@@ -83,7 +79,7 @@
   animation: fadeIn 0.3s ease-out;
 }
 
-/* ── Empty State ── */
+
 .cart-empty-state {
   display: flex;
   flex-direction: column;
@@ -173,7 +169,7 @@
   transform: translateY(0);
 }
 
-/* ── Grid Layout ── */
+
 .cart-grid {
   display: grid;
   grid-template-columns: 1fr 380px;
@@ -188,7 +184,7 @@
   margin-bottom: 16px;
 }
 
-/* ── Items Column ── */
+
 .cart-items-list {
   display: flex;
   flex-direction: column;
@@ -308,9 +304,26 @@
   color: var(--color-text);
 }
 
+.cart-item-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-light);
+  cursor: pointer;
+  padding: 6px;
+  transition: all 0.2s ease;
+}
+
+.cart-item-remove-btn:hover {
+  color: var(--color-pink);
+  border-color: var(--color-pink-dark);
+  background: rgba(232, 67, 147, 0.06);
+}
 
 
-/* ── Summary Column ── */
 .cart-summary-card {
   background: var(--color-bg-white);
   border-radius: var(--radius-xl);
@@ -413,7 +426,7 @@
   border-color: var(--color-pink-dark);
 }
 
-/* ── Checkout Modal ── */
+
 .checkout-modal-overlay {
   position: fixed;
   top: 0;
@@ -582,7 +595,7 @@
   border-color: var(--color-orange-border);
 }
 
-/* ── Media Queries (Responsive) ── */
+
 @media (max-width: 900px) {
   .cart-grid {
     grid-template-columns: 1fr;

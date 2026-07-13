@@ -134,6 +134,24 @@ export function CartProvider({ children }) {
     }
   }, [fetchWithAuth, refreshCart]);
 
+  const removeFromCart = useCallback(async (choreographyId) => {
+    setCartError(null);
+    try {
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/academy/cart/${choreographyId}/`, {
+        method: 'DELETE',
+      });
+      if (!res) return;
+      if (!res.ok) {
+        const data = await res.json();
+        setCartError(data.detail || 'Error al eliminar del carrito');
+        return;
+      }
+      await refreshCart();
+    } catch {
+      setCartError('Error al eliminar del carrito');
+    }
+  }, [fetchWithAuth, refreshCart]);
+
   const checkout = useCallback(async () => {
     setCartError(null);
     setCartCheckoutLoading(true);
@@ -190,6 +208,7 @@ export function CartProvider({ children }) {
         cartCheckoutLoading,
         cartError,
         addToCart,
+        removeFromCart,
         clearCart,
         isInCart,
         cartTotal,
