@@ -171,7 +171,7 @@ const handleSubmit = async () => {
   }
 };
 
-  if (role !== 'teacher' && role !== 'director') return <div>Acceso denegado</div>;
+  if (role !== 'teacher' && role !== 'director' && role !== 'admin') return <div>Acceso denegado</div>;
 
   return (
     <div className="admin-layout">
