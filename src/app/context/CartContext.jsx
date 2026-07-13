@@ -1,50 +1,175 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
+import { COURSES } from '../data/courses';
 
 const CartContext = createContext(null);
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export function CartProvider({ children }) {
-  const [cartItems, setCartItems] = useState(() => {
-    try {
-      const savedCart = localStorage.getItem('ritnova_cart');
-      return savedCart ? JSON.parse(savedCart) : [];
-    } catch (e) {
-      console.error('Error parsing cart from localStorage', e);
-      return [];
-    }
-  });
+  const [cartItems, setCartItems] = useState([]);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartAdding, setCartAdding] = useState(false);
+  const [cartCheckoutLoading, setCartCheckoutLoading] = useState(false);
+  const [cartError, setCartError] = useState(null);
 
-  useEffect(() => {
-    localStorage.setItem('ritnova_cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+  const fetchWithAuth = useCallback(async (url, options = {}) => {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) return null;
 
-  const addToCart = (course) => {
-    setCartItems((prevItems) => {
-      // Evitar duplicados
-      if (prevItems.some((item) => item.id === course.id)) {
-        return prevItems;
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    let res = await fetch(url, { ...options, headers: { ...defaultHeaders, ...options.headers } });
+
+    if (res.status === 401) {
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        localStorage.removeItem('access_token');
+        window.location.href = '/login';
+        return null;
       }
-      return [...prevItems, course];
+      const refreshRes = await fetch(`${API_BASE_URL}/api/users/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+      if (refreshRes.ok) {
+        const data = await refreshRes.json();
+        localStorage.setItem('access_token', data.access);
+        res = await fetch(url, {
+          ...options,
+          headers: { ...defaultHeaders, Authorization: `Bearer ${data.access}` },
+        });
+      } else {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return null;
+      }
+    }
+
+    return res;
+  }, []);
+
+  const enrichItems = useCallback((backendItems) => {
+    const normalizePrice = (value) => {
+      if (value === null || value === undefined || value === '') return '0';
+      if (typeof value === 'number') {
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      }
+
+      const numeric = Number(String(value).replace(/[^\d.]/g, ''));
+      if (!Number.isNaN(numeric) && numeric > 0) {
+        return Math.round(numeric).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      }
+
+      return String(value);
+    };
+
+    return backendItems.map((item) => {
+      const course = COURSES.find((c) => c.id === item.choreography);
+      const fallbackBackendPrice = normalizePrice(item.choreography_price);
+
+      return {
+        ...item,
+        id: item.choreography,
+        title: item.choreography_name || course?.title || '',
+        // Keep price aligned with Home/Course catalog when the course exists locally.
+        price: course?.price || fallbackBackendPrice,
+        image: course?.image || '',
+        genre: course?.genre || '',
+        instructor: course?.instructor || '',
+        level: course?.level || '',
+        duration: course?.duration || '',
+      };
     });
-  };
+  }, []);
 
-  const removeFromCart = (courseId) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== courseId));
-  };
+  const refreshCart = useCallback(async () => {
+    setCartError(null);
+    setCartLoading(true);
+    try {
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/academy/cart/`);
+      if (!res) {
+        setCartItems([]);
+        return;
+      }
+      if (!res.ok) {
+        setCartError('Error al cargar el carrito');
+        setCartItems([]);
+        return;
+      }
+      const data = await res.json();
+      setCartItems(enrichItems(data.items || []));
+    } catch {
+      setCartError('Error al cargar el carrito');
+      setCartItems([]);
+    } finally {
+      setCartLoading(false);
+    }
+  }, [fetchWithAuth, enrichItems]);
 
-  const clearCart = () => {
+  const addToCart = useCallback(async (courseOrId) => {
+    const choreographyId = typeof courseOrId === 'object' ? courseOrId.id : courseOrId;
+    setCartError(null);
+    setCartAdding(true);
+    try {
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/academy/cart/`, {
+        method: 'POST',
+        body: JSON.stringify({ choreography_id: choreographyId }),
+      });
+      if (!res) return;
+      const data = await res.json();
+      if (!res.ok) {
+        setCartError(data.detail || 'Error al añadir al carrito');
+        return;
+      }
+      await refreshCart();
+    } catch {
+      setCartError('Error al añadir al carrito');
+    } finally {
+      setCartAdding(false);
+    }
+  }, [fetchWithAuth, refreshCart]);
+
+  const checkout = useCallback(async () => {
+    setCartError(null);
+    setCartCheckoutLoading(true);
+    try {
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/academy/cart/checkout/`, {
+        method: 'POST',
+        body: JSON.stringify({ datos_facturacion: '' }),
+      });
+      if (!res) return null;
+      const data = await res.json();
+      if (!res.ok) {
+        setCartError(data.detail || 'Error al procesar el pago');
+        return null;
+      }
+      setCartItems([]);
+      return data;
+    } catch {
+      setCartError('Error al procesar el pago');
+      return null;
+    } finally {
+      setCartCheckoutLoading(false);
+    }
+  }, [fetchWithAuth]);
+
+  const clearCart = useCallback(() => {
     setCartItems([]);
-  };
+  }, []);
 
-  const isInCart = (courseId) => {
-    return cartItems.some((item) => item.id === courseId);
-  };
+  const isInCart = useCallback(
+    (courseId) => cartItems.some((item) => item.id === courseId),
+    [cartItems]
+  );
 
-  // Convertir precios como "100.000" a número entero y sumarlos
   const getNumericPrice = (priceStr) => {
     if (!priceStr) return 0;
-    // Si ya es un número, retornarlo
     if (typeof priceStr === 'number') return priceStr;
-    // Quitar puntos decimales y convertir a entero
     const cleaned = priceStr.replace(/\./g, '');
     return parseInt(cleaned, 10) || 0;
   };
@@ -52,7 +177,6 @@ export function CartProvider({ children }) {
   const cartTotal = cartItems.reduce((sum, item) => sum + getNumericPrice(item.price), 0);
 
   const formatCOP = (value) => {
-    // Formatea 100000 en "$100.000"
     const formatted = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return `$${formatted} COP`;
   };
@@ -61,12 +185,17 @@ export function CartProvider({ children }) {
     <CartContext.Provider
       value={{
         cartItems,
+        cartLoading,
+        cartAdding,
+        cartCheckoutLoading,
+        cartError,
         addToCart,
-        removeFromCart,
         clearCart,
         isInCart,
         cartTotal,
         formatCOP,
+        refreshCart,
+        checkout,
       }}
     >
       {children}
