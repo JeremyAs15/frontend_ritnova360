@@ -6,6 +6,7 @@ import CourseCard from '../../components/CourseCard/CourseCard';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import { COURSES } from '../../data/courses';
 import StarIcon from '../../components/StarIcon';
+import { useCart } from '../../context/CartContext';
 import './CoursePage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -20,6 +21,7 @@ function CoursePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const course = COURSES.find((c) => c.id === Number(id));
+  const { addToCart, isInCart } = useCart();
 
   // --- Lógica de Autenticación ---
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
@@ -108,8 +110,19 @@ function CoursePage() {
                   Ya tengo cuenta
                 </button>
               </>
+            ) : isInCart(course.id) ? (
+              <button
+                className="course-hero__card-btn course-hero__card-btn--primary"
+                style={{ background: 'var(--gradient-pink)', boxShadow: 'var(--shadow-pink)' }}
+                onClick={() => navigate('/carrito')}
+              >
+                Ir al carrito
+              </button>
             ) : (
-              <button className="course-hero__card-btn course-hero__card-btn--primary" onClick={() => console.log("Añadir al carrito")}>
+              <button
+                className="course-hero__card-btn course-hero__card-btn--primary"
+                onClick={() => addToCart(course)}
+              >
                 Añadir al carrito
               </button>
             )}
