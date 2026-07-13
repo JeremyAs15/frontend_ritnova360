@@ -78,6 +78,54 @@ function RegisterChoreographyForm({
         error={errors.guest_dancer}
       />
 
+      <div className="input-field">
+        <label className="input-field__label">
+          Descripción de la coreografía
+        </label>
+
+        <textarea
+          className="input-field__input"
+          rows={3}
+          value={form.description}
+          onChange={onFormChange('description')}
+          placeholder="Describe qué aprenderán los estudiantes..."
+        />
+
+        {errors.description && (
+          <span className="input-field__error">
+            {errors.description}
+          </span>
+        )}
+      </div>
+
+      <div className="input-field">
+        <label className="input-field__label">
+          Imagen de portada (Banner)
+        </label>
+
+        <div className="register-choreography-form__file-wrapper">
+          <label className="register-choreography-form__file-label">
+            <Upload size={16} />
+            <span>
+              {form.image_file
+                ? form.image_file.name
+                : "Subir imagen de portada"}
+            </span>
+
+            <input
+              type="file"
+              accept="image/*"
+              className="register-choreography-form__file-hidden"
+              onChange={(e) =>
+                onFormChange("image_file")({
+                  target: { value: e.target.files[0] },
+                })
+              }
+            />
+          </label>
+        </div>
+      </div>
+
       <div className="register-choreography-form__clips">
         <p className="register-choreography-form__clips-label">Clips de video (archivos mp4)</p>
         {clips.map((clip, index) => (

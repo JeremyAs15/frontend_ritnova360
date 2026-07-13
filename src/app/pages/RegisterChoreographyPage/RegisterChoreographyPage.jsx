@@ -9,7 +9,7 @@ import './RegisterChoreographyPage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-const EMPTY_FORM = { song_name: '', genre: 'Salsa', genre_other: '', difficulty_level: 'Principiante', lead_dancer: '', guest_dancer: '', price: '' };
+const EMPTY_FORM = { song_name: '', genre: 'Salsa', genre_other: '', difficulty_level: 'Principiante', lead_dancer: '', guest_dancer: '', price: '', description: '', image_file: null };
 const EMPTY_CLIP = { part_number: 1, video_file: null };
 
 function RegisterChoreographyPage() {
@@ -29,7 +29,13 @@ function RegisterChoreographyPage() {
 
   const fetchWithAuth = useCallback(async (url, options = {}) => {
     const token = localStorage.getItem('access_token');
-    return fetch(url, { ...options, headers: { ...(options.headers || {}), Authorization: `Bearer ${token}` } });
+    return fetch(url, { 
+      ...options, 
+      headers: { 
+        ...(options.headers || {}), 
+        Authorization: `Bearer ${token}` 
+      } 
+    });
   }, []);
 
   const loadData = useCallback(async () => {
@@ -90,6 +96,21 @@ const handleSubmit = async () => {
   console.log("DEBUG CLOUDINARY:", { cloudName, uploadPreset });
   
   try {
+    let finalImageUrl = "";
+
+    if (form.image_file) {
+      setServerError("Subiendo imagen de portada...");
+      const imgData = new FormData();
+      imgData.append("file", form.image_file);
+      imgData.append("upload_preset", uploadPreset);
+      const imgRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: imgData,
+      });
+      const imgResult = await imgRes.json();
+      finalImageUrl = imgResult.secure_url;
+    }
+
     const uploadedClips = [];
 
     // 1. Iterar y subir cada archivo de video seleccionado a Cloudinary
@@ -137,7 +158,10 @@ const handleSubmit = async () => {
       genre: form.genre === "Otro" ? form.genre_other.trim() : form.genre,
       difficulty_level: form.difficulty_level,
       price: parseFloat(form.price),
-      video_clips: uploadedClips, // El listado con los metadatos y las URLs de Cloudinary
+      description: form.description,
+      thumbnail_url: finalImageUrl,
+      video_clips: uploadedClips,
+      is_active: true,
     };
 
     if (form.guest_dancer) {
@@ -157,7 +181,7 @@ const handleSubmit = async () => {
       setIsModalOpen(false);
       setForm(EMPTY_FORM);
       setClips([{ ...EMPTY_CLIP }]);
-      loadData(); // Recarga la tabla de coreografías para mostrar la nueva
+      loadData();
     } else {
       const data = await response.json();
       // Mostramos detalles del error de validación retornado por el backend si existen
