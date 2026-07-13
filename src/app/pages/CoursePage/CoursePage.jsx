@@ -5,6 +5,7 @@ import Footer from '../../components/Footer/Footer';
 import CourseCard from '../../components/CourseCard/CourseCard';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import StarIcon from '../../components/StarIcon';
+import { useCart } from '../../context/CartContext';
 import './CoursePage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -19,6 +20,10 @@ function ArrowLeftIcon() { return <svg width="18" height="18" viewBox="0 0 24 24
 function CoursePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const course = COURSES.find((c) => c.id === Number(id));
+  const { addToCart, isInCart, cartAdding, cartError, refreshCart } = useCart();
+
+  // --- Lógica de Autenticación ---
   
   // --- ESTADOS ---
   const [course, setCourse] = useState(null);
@@ -61,8 +66,9 @@ function CoursePage() {
         .then((res) => (res.ok ? res.json() : Promise.reject()))
         .then(setProfile)
         .catch(() => setIsAuthenticated(false));
+      refreshCart();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, refreshCart]);
 
   if (loading) return <div className="course-page__loading">Cargando detalles de la clase...</div>;
   
@@ -141,10 +147,25 @@ function CoursePage() {
                   Ya tengo cuenta
                 </button>
               </>
-            ) : (
-              <button className="course-hero__card-btn course-hero__card-btn--primary" onClick={() => console.log("Añadir al carrito")}>
-                Añadir al carrito
+            ) : isInCart(course.id) ? (
+              <button
+                className="course-hero__card-btn course-hero__card-btn--primary"
+                style={{ background: 'var(--gradient-pink)', boxShadow: 'var(--shadow-pink)' }}
+                onClick={() => navigate('/carrito')}
+              >
+                Ir al carrito
               </button>
+            ) : (
+              <button
+                className="course-hero__card-btn course-hero__card-btn--primary"
+                onClick={() => addToCart(course)}
+                disabled={cartAdding}
+              >
+                {cartAdding ? 'Añadiendo...' : 'Añadir al carrito'}
+              </button>
+            )}
+            {cartError && (
+              <p className="course-hero__card-error">{cartError}</p>
             )}
             
             <p className="course-hero__card-guarantee">
