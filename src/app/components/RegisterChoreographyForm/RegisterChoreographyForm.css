@@ -1,0 +1,78 @@
+.register-choreography-form__select {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.95rem;
+  padding: 0;
+  cursor: pointer;
+}
+
+.register-choreography-form__clips {
+  margin-bottom: 20px;
+}
+
+.register-choreography-form__clips-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
+.register-choreography-form__clip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.register-choreography-form__clip-part {
+  flex: 0 0 60px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.register-choreography-form__clip-url {
+  flex: 1;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.register-choreography-form__clip-remove {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 6px;
+}
+
+.register-choreography-form__clip-remove:hover {
+  color: #dc2626;
+}
+
+.register-choreography-form__add-clip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #f97316;
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.register-choreography-form__add-clip:hover {
+  color: #ea580c;
+}
+
+.register-choreography-form__server-error {
+  display: block;
+  text-align: center;
+  margin-bottom: 15px;
+}

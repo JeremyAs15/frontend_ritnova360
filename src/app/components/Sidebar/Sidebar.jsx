@@ -12,18 +12,19 @@ const STUDENT_NAV_ITEMS = [
   { title: 'Mi perfil',     url: '/perfil',      icon: User            },
 ];
 
-// Ítems para profesor
-const TEACHER_NAV_ITEMS = [
-  { title: 'Dashboard',     url: '/dashboard',   icon: LayoutDashboard },
-  { title: 'Mi perfil',     url: '/perfil',      icon: User            },
-];
-
 // Ítems para admin / director
 const ADMIN_NAV_ITEMS = [
   { title: 'Dashboard',              url: '/dashboard',              icon: LayoutDashboard },
   { title: 'Usuarios internos',      url: '/admin/users',            icon: Users           },
   { title: 'Catálogo coreografías',  url: '/admin/choreographies',   icon: ClipboardList   },
   { title: 'Panel servicios',        url: '/admin/settings',         icon: Settings        },
+];
+
+// Ítems para profesor y director (ambos gestionan coreografías, ver academy/services.py → create_choreography)
+const STAFF_NAV_ITEMS = [
+  { title: 'Dashboard',        url: '/dashboard',          icon: LayoutDashboard },
+  { title: 'Mis coreografías', url: '/coreografias/nueva', icon: ClipboardList   },
+  { title: 'Mi perfil',        url: '/perfil',             icon: User            },
 ];
 
 const ROLE_LABELS = {
@@ -35,9 +36,9 @@ const ROLE_LABELS = {
 
 const NAV_ITEMS_BY_ROLE = {
   student: STUDENT_NAV_ITEMS,
-  teacher: TEACHER_NAV_ITEMS,
+  teacher: STAFF_NAV_ITEMS,
   admin: ADMIN_NAV_ITEMS,
-  director: ADMIN_NAV_ITEMS,
+  director: STAFF_NAV_ITEMS,
 };
 
 /** Resuelve los ítems de navegación y la etiqueta visible según el código de rol del JWT. */
@@ -48,7 +49,7 @@ function getSidebarConfigForRole(role) {
   };
 }
 
-export { STUDENT_NAV_ITEMS, TEACHER_NAV_ITEMS, ADMIN_NAV_ITEMS, getSidebarConfigForRole };
+export { STUDENT_NAV_ITEMS, ADMIN_NAV_ITEMS, STAFF_NAV_ITEMS, getSidebarConfigForRole };
 
 function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudiante', navItems }) {
   const navigate = useNavigate();
