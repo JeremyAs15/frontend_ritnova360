@@ -72,50 +72,104 @@ function RegisterChoreographyPage() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async () => {
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
+  // Localiza esta función dentro de RegisterChoreographyPage.jsx y reemplázala:
+const handleSubmit = async () => {
+  const validationErrors = validate();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
+
+  setServerError(null);
+  setStatus('loading');
+
+  // Datos de configuración de Cloudinary
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME; 
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+ 
+  console.log("DEBUG CLOUDINARY:", { cloudName, uploadPreset });
+  
+  try {
+    const uploadedClips = [];
+
+    // 1. Iterar y subir cada archivo de video seleccionado a Cloudinary
+    for (let i = 0; i < clips.length; i++) {
+      const clip = clips[i];
+      
+      // Creamos el FormData que requiere la API REST de Cloudinary
+      const cloudinaryData = new FormData();
+      cloudinaryData.append("file", clip.video_file);
+      cloudinaryData.append("upload_preset", uploadPreset);
+
+      // Actualizamos el mensaje de estado para retroalimentar al cliente
+      setServerError(`Subiendo video parte ${clip.part_number}...`); 
+
+      const cloudinaryResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
+        {
+          method: "POST",
+          body: cloudinaryData,
+        }
+      );
+
+      if (!cloudinaryResponse.ok) {
+        const errData = await cloudinaryResponse.json();
+        throw new Error(
+          errData.error?.message || `Fallo al subir el clip número ${clip.part_number}`
+        );
+      }
+
+      const uploadResult = await cloudinaryResponse.json();
+
+      // Almacenamos la URL segura generada por Cloudinary y su número de orden
+      uploadedClips.push({
+        part_number: parseInt(clip.part_number, 10),
+        video_url: uploadResult.secure_url, // URL HTTPS persistente del video
+      });
     }
 
+    // Limpiamos el mensaje temporal de subida
     setServerError(null);
-    setStatus('loading');
 
-    const formData = new FormData();
-    formData.append('song_name', form.song_name);
-    formData.append('genre', form.genre === 'Otro' ? form.genre_other : form.genre);
-    formData.append('difficulty_level', form.difficulty_level);
-    formData.append('price', form.price);
-    if (form.guest_dancer) formData.append('guest_dancer', form.guest_dancer);
-    if (isDirector) formData.append('lead_dancer', form.lead_dancer);
+    // 2. Construir el payload JSON esperado por Django
+    const choreographyPayload = {
+      song_name: form.song_name.trim(),
+      genre: form.genre === "Otro" ? form.genre_other.trim() : form.genre,
+      difficulty_level: form.difficulty_level,
+      price: parseFloat(form.price),
+      video_clips: uploadedClips, // El listado con los metadatos y las URLs de Cloudinary
+    };
 
-    clips.forEach((clip, index) => {
-      formData.append(`video_clips[${index}]part_number`, clip.part_number);
-      if (clip.video_file) {
-        formData.append(`video_clips[${index}]video_file`, clip.video_file);
-      }
+    if (form.guest_dancer) {
+      choreographyPayload.guest_dancer = form.guest_dancer.trim();
+    }
+
+    // 3. Enviar los datos estructurados a Django
+    const response = await fetchWithAuth(`${API_BASE_URL}/api/academy/choreographies/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(choreographyPayload),
     });
 
-    try {
-      const response = await fetchWithAuth(`${API_BASE_URL}/api/academy/choreographies/`, {
-        method: 'POST',
-        body: formData, 
-      });
-
-      if (response.ok) {
-        setIsModalOpen(false);
-        loadData(); 
-      } else {
-        const data = await response.json();
-        setServerError(data.detail || 'Error al subir los videos.');
-        setStatus('idle');
-      }
-    } catch (err) {
-      setServerError('Error de conexión.');
-      setStatus('idle');
+    if (response.ok) {
+      setIsModalOpen(false);
+      setForm(EMPTY_FORM);
+      setClips([{ ...EMPTY_CLIP }]);
+      loadData(); // Recarga la tabla de coreografías para mostrar la nueva
+    } else {
+      const data = await response.json();
+      // Mostramos detalles del error de validación retornado por el backend si existen
+      const details = data.detail || Object.values(data).flat().join(" | ");
+      setServerError(details || "Error al registrar la coreografía en la academia.");
+      setStatus("idle");
     }
-  };
+  } catch (err) {
+    setServerError(err.message || "Error en la conexión con los servicios.");
+    setStatus("idle");
+  }
+};
 
   if (role !== 'teacher' && role !== 'director') return <div>Acceso denegado</div>;
 
