@@ -41,8 +41,7 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         localStorage.setItem("role", data.user.role);
         window.dispatchEvent(new Event('auth-change'));
 
-        // El dashboard se resuelve internamente según el rol del usuario logueado.
-        navigate('/dashboard');
+        navigate('/perfil');
       } else {
         if (data.captcha) {
           setLoginError(data.captcha);
@@ -79,7 +78,7 @@ function LoginPage({ onLogin, onSignUp, onForgotPassword }) {
         localStorage.setItem("first_name", data.user.first_name);
         window.dispatchEvent(new Event('auth-change'));
 
-        navigate('/dashboard');
+        navigate('/perfil');
       } else {
         setLoginError(data.detail || 'Fallo la autenticación con Google.');
       }
