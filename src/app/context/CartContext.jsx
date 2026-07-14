@@ -152,18 +152,23 @@ export function CartProvider({ children }) {
     }
   }, [fetchWithAuth, refreshCart]);
 
-  const checkout = useCallback(async () => {
+  const checkout = useCallback(async ({ billingInfo = {}, paymentMethod, paymentData = {} } = {}) => {
     setCartError(null);
     setCartCheckoutLoading(true);
     try {
+      const body = {
+        datos_facturacion: JSON.stringify(billingInfo),
+        payment_method: paymentMethod || 'card',
+        payment_data: paymentData,
+      };
       const res = await fetchWithAuth(`${API_BASE_URL}/api/academy/cart/checkout/`, {
         method: 'POST',
-        body: JSON.stringify({ datos_facturacion: '' }),
+        body: JSON.stringify(body),
       });
       if (!res) return null;
       const data = await res.json();
       if (!res.ok) {
-        setCartError(data.detail || 'Error al procesar el pago');
+        setCartError(Array.isArray(data.detail) ? data.detail[0] : (data.detail || 'Error al procesar el pago'));
         return null;
       }
       setCartItems([]);
