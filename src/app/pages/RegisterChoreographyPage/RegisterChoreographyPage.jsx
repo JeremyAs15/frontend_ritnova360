@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, X } from 'lucide-react';
-import Sidebar, { STAFF_NAV_ITEMS } from '../../components/Sidebar/Sidebar';
+import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import RegisterChoreographyForm from '../../components/RegisterChoreographyForm/RegisterChoreographyForm';
 import ChoreographyTable from '../../components/ChoreographyTable/ChoreographyTable';
 import { getUserRoleFromToken } from '../../utils/auth';
@@ -14,11 +14,18 @@ const EMPTY_CLIP = { part_number: 1, video_file: null, video_url: null };
 
 function RegisterChoreographyPage() {
   const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
   const role = getUserRoleFromToken(localStorage.getItem("access_token")) ?? localStorage.getItem("role");
   const isDirector = role === 'director';
 
+  // Estados de datos y paginación
   const [choreographies, setChoreographies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const PAGE_SIZE = 10; // Aumentamos a 10 para ver todo lo que indica el dashboard
+
+  // Estados de Modal y Edición
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -44,15 +51,39 @@ function RegisterChoreographyPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/api/academy/choreographies/?user_only=true`);
+      const params = new URLSearchParams({
+        page: currentPage,
+        page_size: PAGE_SIZE
+      });
+
+      // Si es profesor, solo ve lo suyo. Si es Director/Admin, ve todo.
+      if (role === 'teacher') params.append('user_only', 'true');
+      
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/academy/choreographies/?${params.toString()}`);
       const data = await res.json();
-      setChoreographies(Array.isArray(data) ? data : data.results || []);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  }, [fetchWithAuth]);
+      
+      // Manejamos la respuesta paginada del backend { count, results }
+      setChoreographies(data.results || []);
+      setTotalCount(data.count || 0);
+    } catch (err) { 
+      console.error("Error al cargar coreografías:", err); 
+    } finally { 
+      setLoading(false); 
+    }
+  }, [fetchWithAuth, role, currentPage]);
 
   useEffect(() => {
     loadData();
+    const token = localStorage.getItem('access_token');
+    
+    // Cargar perfil para el Sidebar
+    fetch(`${API_BASE_URL}/api/users/profile/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then(setProfile)
+      .catch(() => {});
+
     if (isDirector) {
       fetchWithAuth(`${API_BASE_URL}/api/users/internal/?role=teacher`)
         .then(res => res.json())
@@ -191,17 +222,31 @@ function RegisterChoreographyPage() {
     }
   };
 
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const { navItems, roleLabel } = getSidebarConfigForRole(profile?.role || role);
+  const fullName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email : 'Usuario';
+
   if (role !== 'teacher' && role !== 'director' && role !== 'admin') return <div>Acceso denegado</div>;
 
   return (
     <div className="admin-layout">
-      <Sidebar userName="Usuario" userRole={isDirector ? 'Director' : 'Profesor'} navItems={STAFF_NAV_ITEMS} />
+      <Sidebar 
+        userName={fullName} 
+        userRole={roleLabel} 
+        navItems={navItems} 
+      />
       <main className="admin-main">
         <div className="admin-content">
           <div className="admin-header">
             <div>
-              <h1 className="admin-header__title">Mis Coreografías</h1>
-              <p className="admin-header__subtitle">Gestiona tus clases y videos subidos.</p>
+              <h1 className="admin-header__title">
+                {isDirector ? "Gestión Global de Coreografías" : "Mis Coreografías"}
+              </h1>
+              <p className="admin-header__subtitle">
+                {isDirector 
+                  ? "Visualiza y administra todas las coreografías de la academia." 
+                  : "Gestiona tus clases y videos subidos."}
+              </p>
             </div>
             <button className="admin-btn admin-btn--primary" onClick={handleOpenModal}>
               <Plus size={16} /> Registrar coreografía
@@ -214,6 +259,32 @@ function RegisterChoreographyPage() {
             onEdit={handleEditClick} 
             onDelete={handleDeleteClick}
           />
+
+          {/* Controles de Paginación */}
+          {totalPages > 1 && (
+            <div className="admin-pagination">
+              <p className="admin-pagination__info">
+                Mostrando {choreographies.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, totalCount)} de {totalCount}
+              </p>
+              <div className="admin-pagination__controls">
+                <button 
+                  className="pagination__btn" 
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1 || loading}
+                >
+                  ← Anterior
+                </button>
+                <span className="admin-pagination__current">Página {currentPage} de {totalPages}</span>
+                <button 
+                  className="pagination__btn" 
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages || loading}
+                >
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {isModalOpen && (

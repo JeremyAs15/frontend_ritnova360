@@ -28,6 +28,13 @@ const STAFF_NAV_ITEMS = [
   { title: 'Mi perfil',        url: '/perfil',             icon: User            },
 ];
 
+const DIRECTOR_NAV_ITEMS = [
+  { title: 'Dashboard',             url: '/dashboard',          icon: LayoutDashboard },
+  { title: 'Usuarios internos',     url: '/admin/users',        icon: Users           },
+  { title: 'Gestión Coreografías',  url: '/coreografias/nueva', icon: ClipboardList   }, 
+  { title: 'Mi perfil',             url: '/perfil',             icon: User            },
+];
+
 const ROLE_LABELS = {
   student: 'Estudiante',
   teacher: 'Profesor',
@@ -39,7 +46,7 @@ const NAV_ITEMS_BY_ROLE = {
   student: STUDENT_NAV_ITEMS,
   teacher: STAFF_NAV_ITEMS,
   admin: ADMIN_NAV_ITEMS,
-  director: STAFF_NAV_ITEMS,
+  director: DIRECTOR_NAV_ITEMS,
 };
 
 /** Resuelve los ítems de navegación y la etiqueta visible según el código de rol del JWT. */
