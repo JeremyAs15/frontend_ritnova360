@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
+import Loader from '../../components/Loader/Loader';
 import { getDashboardData } from '../../services/dashboardService';
 import AdminDirectorDashboard from './AdminDirectorDashboard';
 import TeacherDashboard from './TeacherDashboard';
@@ -80,7 +81,7 @@ function DashboardPage() {
     return (
       <div className="dashboard-layout">
         <main className="dashboard-main">
-          <p className="dashboard-state-message">Cargando tu panel...</p>
+          <Loader label="Cargando tu panel..." />
         </main>
       </div>
     );

@@ -4,6 +4,7 @@ import AreaChart from '../../components/charts/AreaChart';
 import GaugeChart from '../../components/charts/GaugeChart';
 import DateRangeFilter from '../../components/DateRangeFilter/DateRangeFilter';
 import EmptyState from '../../components/EmptyState/EmptyState';
+import Loader from '../../components/Loader/Loader';
 import { CHART_PRIMARY } from '../../utils/chartColors';
 
 const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -22,7 +23,7 @@ function formatPrice(value) {
 /** Dashboard de Estudiante (Cliente). */
 function StudentDashboard({ data, loading, range, onRangeChange }) {
   if (!data) {
-    return <p className="dashboard-state-message">Cargando tu progreso...</p>;
+    return <Loader label="Cargando tu progreso..." />;
   }
 
   const { kpis, progreso_semanal: progresoSemanal, recomendaciones } = data;
