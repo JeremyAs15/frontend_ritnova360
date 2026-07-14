@@ -25,3 +25,13 @@ export function getUserRoleFromToken(token) {
   const payload = getTokenPayload(token);
   return payload?.role || payload?.user_role || null;
 }
+
+export function logout() {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('first_name');
+  localStorage.removeItem('role');
+  
+  window.dispatchEvent(new Event('auth-change'));
+  window.location.href = '/login';
+}

@@ -16,12 +16,13 @@ function Navbar({ onCatalogClick }) {
 
   useEffect(() => {
     const syncAuth = () => {
-      setIsLoggedIn(!!localStorage.getItem('access_token'));
-      setFirstName(localStorage.getItem('first_name'));
+      const token = localStorage.getItem('access_token');
+      setIsLoggedIn(!!token);
+      setFirstName(token ? localStorage.getItem('first_name') : null);
     };
 
-    window.addEventListener('storage', syncAuth);      // cambios desde otra pestaña
-    window.addEventListener('auth-change', syncAuth);   // cambios en la misma pestaña
+    window.addEventListener('storage', syncAuth);
+    window.addEventListener('auth-change', syncAuth);
 
     return () => {
       window.removeEventListener('storage', syncAuth);

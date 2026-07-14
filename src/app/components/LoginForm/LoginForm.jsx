@@ -9,17 +9,16 @@ import './LoginForm.css';
 /**
  * LoginForm
  * Props:
- *  - onSubmit          {function}  Recibe { email, password }
+ *  - onSubmit          {function}  Recibe { email, password, captcha_token }
  *  - onGoogleSubmit    {function}  Recibe el token de autenticación de Google
  *  - onSignUp          {function}  Navegar al registro
  *  - onForgotPassword  {function}  Navegar a recuperar contraseña
  */
-function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
+function LoginForm({ onSubmit, onGoogleSubmit, onSignUp, onForgotPassword }) {
   const [form, setForm] = useState({ email: '', password: '' });
   const [captchaToken, setCaptchaToken] = useState(null);
   const [errors, setErrors] = useState({});
 
-  // Clave del sitio obtenida de las variables de entorno de Vite
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
 
   const emailIcon = (
@@ -45,12 +44,15 @@ function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
     return newErrors;
   };
 
-  const handleSubmit = () => {
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
+    
     onSubmit?.({ 
       email: form.email, 
       password: form.password, 
@@ -77,7 +79,7 @@ function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
   );
 
   return (
-    <div className="form">
+    <form className="form" onSubmit={handleFormSubmit}>
       <h1 className="form__title">¡Bienvenido de nuevo!</h1>
       <p className="form__subtitle">
         Accede a tu cuenta para continuar aprendiendo.
@@ -100,11 +102,12 @@ function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
         placeholder="Contraseña"
         error={errors.password}
         hint={
-          <button className="form__forgot" onClick={onForgotPassword}>
+          <button type="button" className="form__forgot" onClick={onForgotPassword}>
             Olvidé mi contraseña
           </button>
         }
       />
+
       <div className="form__captcha-container" style={{ marginBottom: '15px', display: 'flex', justifyContent: 'center' }}>
         <Turnstile
           siteKey={siteKey}
@@ -116,9 +119,14 @@ function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
           onExpire={() => setCaptchaToken(null)}
         />
       </div>
-      {errors.captcha && <span className="input-field__error" style={{ display: 'block', textAlign: 'center', marginBottom: '15px' }}>{errors.captcha}</span>}
+
+      {errors.captcha && (
+        <span className="input-field__error" style={{ display: 'block', textAlign: 'center', marginBottom: '15px' }}>
+          {errors.captcha}
+        </span>
+      )}
       
-      <button className="form__submit" onClick={handleSubmit}>
+      <button type="submit" className="form__submit">
         Iniciar Sesión <span>→</span>
       </button>
 
@@ -128,18 +136,17 @@ function LoginForm( {onSubmit, onGoogleSubmit, onSignUp, onForgotPassword}) {
         <span />
       </div>
 
-      {/* Botón de inicio de sesión con Google*/}
       <button type="button" className="form__google" onClick={() => handleGoogleLogin()}>
         <GoogleIcon /> Google
       </button>
 
       <p className="form__footer">
         ¿Aún no tienes cuenta?{' '}
-        <button className="form__link-btn" onClick={onSignUp}>
+        <button type="button" className="form__link-btn" onClick={onSignUp}>
           Regístrate aquí
         </button>
       </p>
-    </div>
+    </form>
   );
 }
 

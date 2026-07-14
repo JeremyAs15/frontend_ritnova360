@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logout } from '../../utils/auth';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import CourseCard from '../../components/CourseCard/CourseCard';
@@ -42,9 +43,17 @@ function HomePage() {
       fetch(`${API_BASE_URL}/api/users/profile/`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((res) => {
+          if (!res.ok) {
+            if (res.status === 401) logout(); 
+            return Promise.reject();
+          }
+          return res.json();
+        })
         .then(setProfile)
-        .catch(() => setIsAuthenticated(false));
+        .catch(() => {
+          setIsAuthenticated(false);
+        });
     }
   }, [isAuthenticated]);
 
