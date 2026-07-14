@@ -10,7 +10,7 @@ import './RegisterChoreographyPage.css';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const EMPTY_FORM = { song_name: '', genre: 'Salsa', genre_other: '', difficulty_level: 'Principiante', lead_dancer: '', guest_dancer: '', price: '', description: '', image_file: null };
-const EMPTY_CLIP = { part_number: 1, video_file: null };
+const EMPTY_CLIP = { part_number: 1, video_file: null, video_url: null };
 
 function RegisterChoreographyPage() {
   const navigate = useNavigate();
@@ -20,6 +20,9 @@ function RegisterChoreographyPage() {
   const [choreographies, setChoreographies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  
   const [form, setForm] = useState(EMPTY_FORM);
   const [clips, setClips] = useState([{ ...EMPTY_CLIP }]);
   const [errors, setErrors] = useState({});
@@ -41,7 +44,7 @@ function RegisterChoreographyPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/api/academy/choreographies/`);
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/academy/choreographies/?user_only=true`);
       const data = await res.json();
       setChoreographies(Array.isArray(data) ? data : data.results || []);
     } catch (err) { console.error(err); }
@@ -57,143 +60,136 @@ function RegisterChoreographyPage() {
     }
   }, [loadData, isDirector, fetchWithAuth]);
 
-  // Validación local antes de enviar
   const validate = () => {
     const newErrors = {};
     if (!form.song_name.trim()) newErrors.song_name = 'El nombre es obligatorio';
     if (!form.price || form.price <= 0) newErrors.price = 'Precio inválido';
     if (isDirector && !form.lead_dancer) newErrors.lead_dancer = 'Selecciona un profesor';
-    
-    const clipErrors = clips.some(c => !c.video_file);
-    if (clipErrors) newErrors.clips = 'Todos los clips deben tener un archivo de video';
-    
+    const clipErrors = clips.some(c => !c.video_file && !c.video_url);
+    if (clipErrors) newErrors.clips = 'Todos los clips deben tener un video';
     return newErrors;
   };
 
   const handleOpenModal = () => {
+    setIsEditing(false);
     setForm(EMPTY_FORM);
     setClips([{ ...EMPTY_CLIP }]);
     setErrors({});
     setStatus('idle');
+    setServerError(null);
     setIsModalOpen(true);
   };
 
-  // Localiza esta función dentro de RegisterChoreographyPage.jsx y reemplázala:
-const handleSubmit = async () => {
-  const validationErrors = validate();
-  if (Object.keys(validationErrors).length > 0) {
-    setErrors(validationErrors);
-    return;
-  }
+  const handleEditClick = (ch) => {
+    setIsEditing(true);
+    setEditingId(ch.choreography_id);
+    setForm({
+      song_name: ch.song_name,
+      genre: ch.genre,
+      genre_other: '',
+      difficulty_level: ch.difficulty_level,
+      lead_dancer: ch.creator || '',
+      guest_dancer: ch.guest_dancer || '',
+      price: ch.price,
+      description: ch.description || '',
+      image_file: null
+    });
+    setClips(ch.video_clips.map(vc => ({
+      part_number: vc.part_number,
+      video_file: null,
+      video_url: vc.video_url
+    })));
+    setErrors({});
+    setServerError(null);
+    setIsModalOpen(true);
+  };
 
-  setServerError(null);
-  setStatus('loading');
+  const handleDeleteClick = async (id) => {
+    if (!window.confirm("¿Estás seguro de eliminar esta coreografía?")) return;
+    try {
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/academy/choreographies/${id}/`, { method: 'DELETE' });
+      if (res.ok) loadData();
+    } catch (err) { console.error(err); }
+  };
 
-  // Datos de configuración de Cloudinary
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME; 
-  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
- 
-  console.log("DEBUG CLOUDINARY:", { cloudName, uploadPreset });
-  
-  try {
-    let finalImageUrl = "";
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setIsEditing(false);
+    setForm(EMPTY_FORM);
+  };
 
-    if (form.image_file) {
-      setServerError("Subiendo imagen de portada...");
-      const imgData = new FormData();
-      imgData.append("file", form.image_file);
-      imgData.append("upload_preset", uploadPreset);
-      const imgRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: "POST",
-        body: imgData,
-      });
-      const imgResult = await imgRes.json();
-      finalImageUrl = imgResult.secure_url;
+  const handleSubmit = async () => {
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
     }
+    setServerError(null);
+    setStatus('loading');
 
-    const uploadedClips = [];
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME; 
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    
+    try {
+      let finalImageUrl = isEditing ? choreographies.find(c => c.choreography_id === editingId)?.thumbnail_url : "";
+      if (form.image_file instanceof File) {
+        setServerError("Subiendo imagen...");
+        const imgData = new FormData();
+        imgData.append("file", form.image_file);
+        imgData.append("upload_preset", uploadPreset);
+        const imgRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: "POST", body: imgData });
+        const imgResult = await imgRes.json();
+        finalImageUrl = imgResult.secure_url;
+      }
 
-    // 1. Iterar y subir cada archivo de video seleccionado a Cloudinary
-    for (let i = 0; i < clips.length; i++) {
-      const clip = clips[i];
-      
-      // Creamos el FormData que requiere la API REST de Cloudinary
-      const cloudinaryData = new FormData();
-      cloudinaryData.append("file", clip.video_file);
-      cloudinaryData.append("upload_preset", uploadPreset);
+      const uploadedClips = [];
+      for (const clip of clips) {
+        if (clip.video_file instanceof File) {
+          setServerError(`Subiendo video parte ${clip.part_number}...`);
+          const vidData = new FormData();
+          vidData.append("file", clip.video_file);
+          vidData.append("upload_preset", uploadPreset);
+          const vidRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, { method: "POST", body: vidData });
+          const vidResult = await vidRes.json();
+          uploadedClips.push({ part_number: parseInt(clip.part_number, 10), video_url: vidResult.secure_url });
+        } else {
+          uploadedClips.push({ part_number: parseInt(clip.part_number, 10), video_url: clip.video_url });
+        }
+      }
 
-      // Actualizamos el mensaje de estado para retroalimentar al cliente
-      setServerError(`Subiendo video parte ${clip.part_number}...`); 
+      const payload = {
+        song_name: form.song_name.trim(),
+        genre: form.genre === "Otro" ? form.genre_other.trim() : form.genre,
+        difficulty_level: form.difficulty_level,
+        price: parseFloat(form.price),
+        description: form.description,
+        thumbnail_url: finalImageUrl,
+        video_clips: uploadedClips,
+        is_active: true,
+      };
 
-      const cloudinaryResponse = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
+      const response = await fetchWithAuth(
+        isEditing ? `${API_BASE_URL}/api/academy/choreographies/${editingId}/` : `${API_BASE_URL}/api/academy/choreographies/`,
         {
-          method: "POST",
-          body: cloudinaryData,
+          method: isEditing ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         }
       );
 
-      if (!cloudinaryResponse.ok) {
-        const errData = await cloudinaryResponse.json();
-        throw new Error(
-          errData.error?.message || `Fallo al subir el clip número ${clip.part_number}`
-        );
+      if (response.ok) {
+        handleCloseModal();
+        loadData();
+      } else {
+        const data = await response.json();
+        setServerError(data.detail || "Error en el servidor");
+        setStatus("idle");
       }
-
-      const uploadResult = await cloudinaryResponse.json();
-
-      // Almacenamos la URL segura generada por Cloudinary y su número de orden
-      uploadedClips.push({
-        part_number: parseInt(clip.part_number, 10),
-        video_url: uploadResult.secure_url, // URL HTTPS persistente del video
-      });
-    }
-
-    // Limpiamos el mensaje temporal de subida
-    setServerError(null);
-
-    // 2. Construir el payload JSON esperado por Django
-    const choreographyPayload = {
-      song_name: form.song_name.trim(),
-      genre: form.genre === "Otro" ? form.genre_other.trim() : form.genre,
-      difficulty_level: form.difficulty_level,
-      price: parseFloat(form.price),
-      description: form.description,
-      thumbnail_url: finalImageUrl,
-      video_clips: uploadedClips,
-      is_active: true,
-    };
-
-    if (form.guest_dancer) {
-      choreographyPayload.guest_dancer = form.guest_dancer.trim();
-    }
-
-    // 3. Enviar los datos estructurados a Django
-    const response = await fetchWithAuth(`${API_BASE_URL}/api/academy/choreographies/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(choreographyPayload),
-    });
-
-    if (response.ok) {
-      setIsModalOpen(false);
-      setForm(EMPTY_FORM);
-      setClips([{ ...EMPTY_CLIP }]);
-      loadData();
-    } else {
-      const data = await response.json();
-      // Mostramos detalles del error de validación retornado por el backend si existen
-      const details = data.detail || Object.values(data).flat().join(" | ");
-      setServerError(details || "Error al registrar la coreografía en la academia.");
+    } catch (err) {
+      setServerError(err.message);
       setStatus("idle");
     }
-  } catch (err) {
-    setServerError(err.message || "Error en la conexión con los servicios.");
-    setStatus("idle");
-  }
-};
+  };
 
   if (role !== 'teacher' && role !== 'director' && role !== 'admin') return <div>Acceso denegado</div>;
 
@@ -215,15 +211,15 @@ const handleSubmit = async () => {
           <ChoreographyTable 
             choreographies={choreographies} 
             loading={loading} 
-            onEdit={(c) => console.log("Editar", c)} 
-            onDelete={(id) => console.log("Borrar", id)}
+            onEdit={handleEditClick} 
+            onDelete={handleDeleteClick}
           />
         </div>
 
         {isModalOpen && (
           <div className="admin-modal-overlay">
             <div className="admin-modal admin-modal--lg">
-              <button className="admin-modal__close" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
+              <button className="admin-modal__close" onClick={handleCloseModal}><X size={20} /></button>
               <RegisterChoreographyForm
                 form={form}
                 onFormChange={(f) => (e) => setForm({...form, [f]: e.target.value})}
@@ -233,7 +229,7 @@ const handleSubmit = async () => {
                   newClips[idx][f] = val;
                   setClips(newClips);
                 }}
-                onAddClip={() => setClips([...clips, { part_number: clips.length + 1, video_file: null }])}
+                onAddClip={() => setClips([...clips, { part_number: clips.length + 1, video_file: null, video_url: null }])}
                 onRemoveClip={(idx) => setClips(clips.filter((_, i) => i !== idx))}
                 status={status}
                 serverError={serverError}
@@ -241,6 +237,7 @@ const handleSubmit = async () => {
                 showLeadDancerSelect={isDirector}
                 teacherOptions={teacherOptions}
                 errors={errors}
+                submitText={isEditing ? "Actualizar coreografía" : "Registrar coreografía"}
               />
             </div>
           </div>
