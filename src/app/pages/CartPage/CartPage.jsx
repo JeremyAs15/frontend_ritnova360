@@ -4,6 +4,7 @@ import { ShoppingCart, ArrowLeft, CheckCircle, Sparkles, AlertCircle, Trash2, Cr
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import { useCart } from '../../context/CartContext';
 import Loader from '../../components/Loader/Loader';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import './CartPage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -19,6 +20,10 @@ function CartPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [checkoutCompletedItems, setCheckoutCompletedItems] = useState([]);
   const [checkoutTotal, setCheckoutTotal] = useState(0);
+  const [itemToRemove, setItemToRemove] = useState(null);
+  const [removingItem, setRemovingItem] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearingCart, setClearingCart] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [paymentForm, setPaymentForm] = useState({
@@ -29,6 +34,9 @@ function CartPage() {
     phone: '',
     email: '',
     address: '',
+    country: '',
+    department: '',
+    city: '',
     card_number: '',
     cvv: '',
     expiry: '',
@@ -108,11 +116,14 @@ function CartPage() {
     setPaymentForm({
       first_name: profile?.first_name || '',
       last_name: profile?.last_name || '',
-      doc_type: 'CC',
-      doc_number: '',
-      phone: '',
+      doc_type: profile?.document_type || 'CC',
+      doc_number: profile?.n_documento || '',
+      phone: profile?.phone_number || '',
       email: profile?.email || '',
       address: '',
+      country: profile?.country || '',
+      department: profile?.department || '',
+      city: profile?.city || '',
       card_number: '',
       cvv: '',
       expiry: '',
@@ -125,6 +136,27 @@ function CartPage() {
   const handleClosePaymentModal = () => {
     setShowPaymentModal(false);
     setPaymentError(null);
+  };
+
+  const handleConfirmRemoveItem = async () => {
+    if (!itemToRemove) return;
+    setRemovingItem(true);
+    try {
+      await removeFromCart(itemToRemove.id);
+      setItemToRemove(null);
+    } finally {
+      setRemovingItem(false);
+    }
+  };
+
+  const handleConfirmClearCart = async () => {
+    setClearingCart(true);
+    try {
+      await clearCart();
+      setShowClearConfirm(false);
+    } finally {
+      setClearingCart(false);
+    }
   };
 
   const handlePaymentFormChange = (field, value) => {
@@ -170,6 +202,18 @@ function CartPage() {
       setPaymentError('Debe ingresar su dirección');
       return;
     }
+    if (!paymentForm.country.trim()) {
+      setPaymentError('Debe ingresar su país');
+      return;
+    }
+    if (!paymentForm.department.trim()) {
+      setPaymentError('Debe ingresar su departamento');
+      return;
+    }
+    if (!paymentForm.city.trim()) {
+      setPaymentError('Debe ingresar su ciudad');
+      return;
+    }
 
     const billingInfo = {
       first_name: paymentForm.first_name.trim(),
@@ -179,6 +223,9 @@ function CartPage() {
       phone: paymentForm.phone.trim(),
       email: paymentForm.email.trim(),
       address: paymentForm.address.trim(),
+      country: paymentForm.country.trim(),
+      department: paymentForm.department.trim(),
+      city: paymentForm.city.trim(),
     };
 
     let paymentData;
@@ -316,7 +363,7 @@ function CartPage() {
 
                       <div className="cart-item-price-actions">
                         <span className="cart-item-price">${course.price} COP</span>
-                        <button className="cart-item-remove-btn" onClick={() => removeFromCart(course.id)} title="Eliminar del carrito">
+                        <button className="cart-item-remove-btn" onClick={() => setItemToRemove(course)} title="Eliminar del carrito">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -346,7 +393,7 @@ function CartPage() {
                     {cartCheckoutLoading ? 'Procesando...' : 'Proceder al pago'}
                   </button>
 
-                  <button className="cart-clear-btn" onClick={clearCart}>
+                  <button className="cart-clear-btn" onClick={() => setShowClearConfirm(true)}>
                     Vaciar carrito
                   </button>
                 </div>
@@ -355,6 +402,28 @@ function CartPage() {
           )}
         </div>
       </main>
+
+      {/* Confirmar eliminación de un ítem */}
+      <ConfirmModal
+        open={!!itemToRemove}
+        title="¿Eliminar del carrito?"
+        message={<>¿Estás seguro de que deseas eliminar <strong>{itemToRemove?.title}</strong> de tu carrito?</>}
+        confirmLabel="Eliminar"
+        onConfirm={handleConfirmRemoveItem}
+        onCancel={() => setItemToRemove(null)}
+        loading={removingItem}
+      />
+
+      {/* Confirmar vaciado del carrito */}
+      <ConfirmModal
+        open={showClearConfirm}
+        title="¿Vaciar el carrito?"
+        message="Se eliminarán todos los cursos que agregaste. Esta acción no se puede deshacer."
+        confirmLabel="Vaciar carrito"
+        onConfirm={handleConfirmClearCart}
+        onCancel={() => setShowClearConfirm(false)}
+        loading={clearingCart}
+      />
 
       {/* Modal de Pago */}
       {showPaymentModal && (
@@ -414,6 +483,7 @@ function CartPage() {
                       <option value="CE">Cédula Extranjería</option>
                       <option value="NIT">NIT</option>
                       <option value="TI">Tarjeta Identidad</option>
+                      <option value="PASSPORT">Pasaporte</option>
                     </select>
                   </div>
                   <div className="payment-form-group">
@@ -454,9 +524,41 @@ function CartPage() {
                   <input
                     className="payment-form-input"
                     type="text"
-                    placeholder="Cra 1 # 2-3, Ciudad"
+                    placeholder="Cra 1 # 2-3"
                     value={paymentForm.address}
                     onChange={(e) => handlePaymentFormChange('address', e.target.value)}
+                  />
+                </div>
+                <div className="payment-form-row">
+                  <div className="payment-form-group">
+                    <label className="payment-form-label">País <span className="payment-form-required">*</span></label>
+                    <input
+                      className="payment-form-input"
+                      type="text"
+                      placeholder="Colombia"
+                      value={paymentForm.country}
+                      onChange={(e) => handlePaymentFormChange('country', e.target.value)}
+                    />
+                  </div>
+                  <div className="payment-form-group">
+                    <label className="payment-form-label">Departamento <span className="payment-form-required">*</span></label>
+                    <input
+                      className="payment-form-input"
+                      type="text"
+                      placeholder="Valle del Cauca"
+                      value={paymentForm.department}
+                      onChange={(e) => handlePaymentFormChange('department', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="payment-form-group">
+                  <label className="payment-form-label">Ciudad <span className="payment-form-required">*</span></label>
+                  <input
+                    className="payment-form-input"
+                    type="text"
+                    placeholder="Cali"
+                    value={paymentForm.city}
+                    onChange={(e) => handlePaymentFormChange('city', e.target.value)}
                   />
                 </div>
               </div>

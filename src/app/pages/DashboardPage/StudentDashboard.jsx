@@ -1,7 +1,8 @@
-import { ShoppingBag, PlayCircle, Layers, Star, TrendingUp, Sparkles } from 'lucide-react';
+import { ShoppingBag, PlayCircle, Layers, Star, TrendingUp, Sparkles, PieChart } from 'lucide-react';
 import StatCard from '../../components/StatCard/StatCard';
 import AreaChart from '../../components/charts/AreaChart';
 import GaugeChart from '../../components/charts/GaugeChart';
+import DonutChart from '../../components/charts/DonutChart';
 import DateRangeFilter from '../../components/DateRangeFilter/DateRangeFilter';
 import EmptyState from '../../components/EmptyState/EmptyState';
 import Loader from '../../components/Loader/Loader';
@@ -26,11 +27,12 @@ function StudentDashboard({ data, loading, range, onRangeChange }) {
     return <Loader label="Cargando tu progreso..." />;
   }
 
-  const { kpis, progreso_semanal: progresoSemanal, recomendaciones } = data;
+  const { kpis, progreso_semanal: progresoSemanal, generos_comprados: generosComprados, recomendaciones } = data;
 
   const tieneProgreso = progresoSemanal?.length > 0;
   const tieneRecomendaciones = recomendaciones?.length > 0;
   const tieneRating = kpis.mi_rating_promedio !== null && kpis.mi_rating_promedio !== undefined;
+  const tieneGeneros = generosComprados?.labels?.length > 0;
 
   const progresoChart = tieneProgreso
     ? {
@@ -86,32 +88,49 @@ function StudentDashboard({ data, loading, range, onRangeChange }) {
         </div>
       </div>
 
-      <div className="dashboard-chart-card">
-        <div className="dashboard-chart-card__header">
-          <h2 className="dashboard-chart-card__title">Recomendado para ti</h2>
+      <div className="dashboard-charts-grid">
+        <div className="dashboard-chart-card">
+          <div className="dashboard-chart-card__header">
+            <h2 className="dashboard-chart-card__title">Recomendado para ti</h2>
+          </div>
+          {tieneRecomendaciones ? (
+            <ul className="dashboard-list">
+              {recomendaciones.map((rec) => (
+                <li key={rec.choreography_id} className="dashboard-list-item">
+                  <div>
+                    <p className="dashboard-list-item__name">{rec.nombre}</p>
+                    <p className="dashboard-list-item__meta">
+                      {rec.genero}
+                      {rec.profesor ? ` · ${rec.profesor}` : ''}
+                    </p>
+                  </div>
+                  <span className="dashboard-list-item__price">{formatPrice(rec.precio)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState
+              icon={Sparkles}
+              title="No hay nuevas recomendaciones"
+              description="Ya exploraste todo el catálogo disponible para tus géneros favoritos."
+            />
+          )}
         </div>
-        {tieneRecomendaciones ? (
-          <ul className="dashboard-list">
-            {recomendaciones.map((rec) => (
-              <li key={rec.choreography_id} className="dashboard-list-item">
-                <div>
-                  <p className="dashboard-list-item__name">{rec.nombre}</p>
-                  <p className="dashboard-list-item__meta">
-                    {rec.genero}
-                    {rec.profesor ? ` · ${rec.profesor}` : ''}
-                  </p>
-                </div>
-                <span className="dashboard-list-item__price">{formatPrice(rec.precio)}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState
-            icon={Sparkles}
-            title="No hay nuevas recomendaciones"
-            description="Ya exploraste todo el catálogo disponible para tus géneros favoritos."
-          />
-        )}
+
+        <div className="dashboard-chart-card">
+          <div className="dashboard-chart-card__header">
+            <h2 className="dashboard-chart-card__title">Géneros que has comprado</h2>
+          </div>
+          {tieneGeneros ? (
+            <DonutChart labels={generosComprados.labels} series={generosComprados.series} />
+          ) : (
+            <EmptyState
+              icon={PieChart}
+              title="Aún no has comprado coreografías"
+              description="Cuando compres coreografías, verás aquí la distribución por género."
+            />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -78,9 +78,9 @@ export function CartProvider({ children }) {
         title: item.choreography_name || course?.title || '',
         // Keep price aligned with Home/Course catalog when the course exists locally.
         price: course?.price || fallbackBackendPrice,
-        image: course?.image || '',
-        genre: course?.genre || '',
-        instructor: course?.instructor || '',
+        image: item.choreography_thumbnail || course?.image || '/logoIcono.png',
+        genre: item.choreography_genre || course?.genre || '',
+        instructor: item.choreography_instructor || course?.instructor || '',
         level: course?.level || '',
         duration: course?.duration || '',
       };

@@ -34,6 +34,7 @@ function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
   const [collapsed, setCollapsed] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [purchasedIds, setPurchasedIds] = useState(new Set());
 
   const GENRES = ['Salsa', 'Bachata', 'Merengue', 'Reggaetón', 'Hip-Hop', 'Pop', 'Dancehall', 'Zumba'];
   const DIFFICULTIES = ['Principiante', 'Intermedio', 'Avanzado', 'Todos los niveles'];
@@ -55,6 +56,13 @@ function HomePage() {
         .catch(() => {
           setIsAuthenticated(false);
         });
+
+      fetch(`${API_BASE_URL}/api/academy/my-courses/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => setPurchasedIds(new Set((data || []).map((e) => e.choreography))))
+        .catch(() => {});
     }
   }, [isAuthenticated]);
 
@@ -181,7 +189,9 @@ function HomePage() {
           </div>
         ) : (
           <div className="catalog__grid">
-            {choreographies.map(course => <CourseCard key={course.id} course={course} />)}
+            {choreographies.map(course => (
+              <CourseCard key={course.id} course={course} purchased={purchasedIds.has(course.id)} />
+            ))}
           </div>
         )}
 
