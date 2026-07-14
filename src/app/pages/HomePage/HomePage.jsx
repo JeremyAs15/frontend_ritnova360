@@ -79,7 +79,8 @@ function HomePage() {
         image: ch.thumbnail_url || "/logoIcono.png",
         genre: ch.genre,
         price: ch.price ? Number(ch.price).toLocaleString('es-CO') : "0",
-        rating: 4.8,
+        rating: ch.rating || 0,
+        students: ch.students_count || 0,
         level: ch.difficulty_level
       }));
 
