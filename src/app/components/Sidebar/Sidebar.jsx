@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, ShoppingCart, Package, User, LogOut, ChevronLeft, ChevronRight, Users, ClipboardList, Settings } from 'lucide-react';
+import { LayoutDashboard, BookOpen, ShoppingCart, Library, User, LogOut, ChevronLeft, ChevronRight, Users, ClipboardList, Settings } from 'lucide-react';
 import logoLargo from '/logoLargo.png';
 import { useCart } from '../../context/CartContext';
 import './Sidebar.css';
@@ -9,7 +9,7 @@ const STUDENT_NAV_ITEMS = [
   { title: 'Dashboard',     url: '/dashboard',   icon: LayoutDashboard },
   { title: 'Catálogo',      url: '/',            icon: BookOpen        },
   { title: 'Carrito',       url: '/carrito',     icon: ShoppingCart    },
-  { title: 'Mis compras',   url: '/mis-compras', icon: Package         },
+  { title: 'Biblioteca',    url: '/mis-compras', icon: Library         },
   { title: 'Mi perfil',     url: '/perfil',      icon: User            },
 ];
 
