@@ -2,7 +2,7 @@ import { useState } from 'react';
 import InputField from '../InputField/InputField';
 import './PasswordInput.css';
  
-function PasswordInput({ label, value, onChange, placeholder = '••••••••', error, hint }) {
+function PasswordInput({ label, value, onChange, placeholder = '••••••••', error, hint, autoComplete = 'current-password' }) {
   const [visible, setVisible] = useState(false);
  
   const lockIcon = (
@@ -44,6 +44,7 @@ function PasswordInput({ label, value, onChange, placeholder = '•••••�
           placeholder={placeholder}
           icon={lockIcon}
           error={error}
+          autoComplete={autoComplete}
         />
  
         {/* Botón ojo */}

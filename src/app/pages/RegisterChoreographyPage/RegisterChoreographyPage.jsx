@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, CheckCircle } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import RegisterChoreographyForm from '../../components/RegisterChoreographyForm/RegisterChoreographyForm';
 import ChoreographyTable from '../../components/ChoreographyTable/ChoreographyTable';
@@ -36,6 +36,12 @@ function RegisterChoreographyPage() {
   const [status, setStatus] = useState('idle');
   const [serverError, setServerError] = useState(null);
   const [teacherOptions, setTeacherOptions] = useState([]);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 4000);
+  };
 
   const fetchWithAuth = useCallback(async (url, options = {}) => {
     const token = localStorage.getItem('access_token');
@@ -211,6 +217,7 @@ function RegisterChoreographyPage() {
       if (response.ok) {
         handleCloseModal();
         loadData();
+        showToast(isEditing ? 'Coreografía actualizada con éxito.' : 'Coreografía creada con éxito.');
       } else {
         const data = await response.json();
         setServerError(data.detail || "Error en el servidor");
@@ -253,10 +260,11 @@ function RegisterChoreographyPage() {
             </button>
           </div>
 
-          <ChoreographyTable 
-            choreographies={choreographies} 
-            loading={loading} 
-            onEdit={handleEditClick} 
+          <ChoreographyTable
+            choreographies={choreographies}
+            loading={loading}
+            onView={(ch) => navigate(`/clase/${ch.choreography_id}`)}
+            onEdit={handleEditClick}
             onDelete={handleDeleteClick}
           />
 
@@ -311,6 +319,14 @@ function RegisterChoreographyPage() {
                 submitText={isEditing ? "Actualizar coreografía" : "Registrar coreografía"}
               />
             </div>
+          </div>
+        )}
+
+        {toast && (
+          <div className="admin-toast admin-toast--success">
+            <CheckCircle size={18} />
+            <span>{toast}</span>
+            <button onClick={() => setToast(null)}><X size={16} /></button>
           </div>
         )}
       </main>

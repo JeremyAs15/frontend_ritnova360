@@ -8,10 +8,13 @@ function InputField({
   placeholder = '',
   icon,
   error,
+  invalid = false,
   disabled = false,
+  autoComplete,
+  inputMode,
 }) {
   return (
-    <div className={`input-field ${error ? 'input-field--error' : ''} ${disabled ? 'input-field--disabled' : ''}`}>
+    <div className={`input-field ${(error || invalid) ? 'input-field--error' : ''} ${disabled ? 'input-field--disabled' : ''}`}>
       {label && <label className="input-field__label">{label}</label>}
 
       <div className="input-field__wrapper">
@@ -23,6 +26,8 @@ function InputField({
           onChange={onChange}
           placeholder={placeholder}
           disabled={disabled}
+          autoComplete={autoComplete}
+          inputMode={inputMode}
         />
       </div>
 

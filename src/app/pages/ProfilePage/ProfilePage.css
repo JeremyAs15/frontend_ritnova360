@@ -250,6 +250,15 @@
   background: #ffffff;
 }
 
+.profile-field__input--error {
+  border-color: var(--alert-error-color);
+}
+
+.profile-field__error {
+  font-size: 0.78rem;
+  color: var(--alert-error-color);
+}
+
 /* ═══════════════════════════════════════════
    Alertas de guardado
 ═══════════════════════════════════════════ */

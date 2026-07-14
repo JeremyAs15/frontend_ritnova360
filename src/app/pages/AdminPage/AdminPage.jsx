@@ -293,12 +293,12 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
             <div className="admin-modal__fields">
               <div className="admin-field">
                 <label className="admin-field__label">Nombre completo</label>
-                <input className="admin-field__input" type="text" value={form.name} onChange={e => setForm(c => ({ ...c, name: e.target.value }))} />
+                <input className="admin-field__input" type="text" autoComplete="off" value={form.name} onChange={e => setForm(c => ({ ...c, name: e.target.value }))} />
                 {errors.name && <span className="admin-field__error">{errors.name}</span>}
               </div>
               <div className="admin-field">
                 <label className="admin-field__label">Correo</label>
-                <input className="admin-field__input" type="email" value={form.email} onChange={e => setForm(c => ({ ...c, email: e.target.value }))} />
+                <input className="admin-field__input" type="email" autoComplete="off" value={form.email} onChange={e => setForm(c => ({ ...c, email: e.target.value }))} />
                 {errors.email && <span className="admin-field__error">{errors.email}</span>}
               </div>
               <div className="admin-modal__grid">
@@ -324,7 +324,7 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
                 </div>
                 <div className="admin-field">
                   <label className="admin-field__label">Teléfono</label>
-                  <input className="admin-field__input" type="tel" value={form.phone_number} placeholder="Ej: 321 777 1114" onChange={e => setForm(c => ({ ...c, phone_number: e.target.value }))} />
+                  <input className="admin-field__input" type="tel" autoComplete="off" value={form.phone_number} placeholder="Ej: 321 777 1114" onChange={e => setForm(c => ({ ...c, phone_number: e.target.value }))} />
                 </div>
                 <div className="admin-field">
                   <label className="admin-field__label">Género</label>
@@ -349,12 +349,12 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
                 </div>
                 <div className="admin-field">
                   <label className="admin-field__label">Número de documento</label>
-                  <input className="admin-field__input" type="text" value={form.n_documento} placeholder="Ej: 1234567890" onChange={e => setForm(c => ({ ...c, n_documento: e.target.value }))} />
+                  <input className="admin-field__input" type="text" inputMode="numeric" autoComplete="off" value={form.n_documento} placeholder="Ej: 1234567890" onChange={e => setForm(c => ({ ...c, n_documento: e.target.value }))} />
                 </div>
                 <div className="admin-field">
                   <label className="admin-field__label">Contraseña</label>
                   <div className="admin-field__password-wrap">
-                    <input className="admin-field__input" type={showPassword ? 'text' : 'password'} value={form.password} onChange={e => setForm(c => ({ ...c, password: e.target.value }))} />
+                    <input className="admin-field__input" type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={form.password} onChange={e => setForm(c => ({ ...c, password: e.target.value }))} />
                     <button type="button" className="admin-field__password-toggle" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -364,7 +364,7 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
                 <div className="admin-field">
                   <label className="admin-field__label">Confirmar contraseña</label>
                   <div className="admin-field__password-wrap">
-                    <input className="admin-field__input" type={showConfirmPassword ? 'text' : 'password'} value={form.confirmPassword} onChange={e => setForm(c => ({ ...c, confirmPassword: e.target.value }))} />
+                    <input className="admin-field__input" type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" value={form.confirmPassword} onChange={e => setForm(c => ({ ...c, confirmPassword: e.target.value }))} />
                     <button type="button" className="admin-field__password-toggle" onClick={() => setShowConfirmPassword(v => !v)} aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
                       {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>

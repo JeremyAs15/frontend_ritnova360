@@ -56,6 +56,11 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
     if (!form.nombres.trim()) newErrors.nombres = 'El nombre es obligatorio';
     if (!form.apellidos.trim()) newErrors.apellidos = 'El apellido es obligatorio';
     if (!form.email.includes('@')) newErrors.email = 'Correo no válido';
+    if (!form.phone_number.trim()) newErrors.phone_number = 'El teléfono es obligatorio';
+    if (!form.birth_date) newErrors.birth_date = 'La fecha de nacimiento es obligatoria';
+    if (!form.genre) newErrors.genre = 'Selecciona un género';
+    if (!form.document_type) newErrors.document_type = 'Selecciona un tipo de documento';
+    if (!form.n_documento.trim()) newErrors.n_documento = 'El número de documento es obligatorio';
     if (form.password.length < 6) newErrors.password = 'Mínimo 6 caracteres';
     if (!accepted) newErrors.terms = 'Debes aceptar los términos';
     if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Las contraseñas no coinciden';
@@ -188,17 +193,20 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
           value={form.phone_number}
           placeholder="Ej: 321 777 1114"
           onChange={handleChange('phone_number')}
+          autoComplete="off"
+          error={errors.phone_number}
         />
         <InputField
           label="Fecha de nacimiento"
           type="date"
           value={form.birth_date}
           onChange={handleChange('birth_date')}
+          error={errors.birth_date}
         />
       </div>
 
       <div className="form__row">
-        <div className="input-field">
+        <div className={`input-field ${errors.genre ? 'input-field--error' : ''}`}>
           <label className="input-field__label">Género</label>
           <div className="input-field__wrapper">
             <select
@@ -213,8 +221,9 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
               <option value="Prefiero no decir">Prefiero no decir</option>
             </select>
           </div>
+          {errors.genre && <span className="input-field__error">{errors.genre}</span>}
         </div>
-        <div className="input-field">
+        <div className={`input-field ${errors.document_type ? 'input-field--error' : ''}`}>
           <label className="input-field__label">Tipo de documento</label>
           <div className="input-field__wrapper">
             <select
@@ -230,6 +239,7 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
               <option value="PASSPORT">Pasaporte</option>
             </select>
           </div>
+          {errors.document_type && <span className="input-field__error">{errors.document_type}</span>}
         </div>
       </div>
 
@@ -237,7 +247,10 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         label="Número de documento"
         value={form.n_documento}
         placeholder="Ej: 1234567890"
+        autoComplete="off"
+        inputMode="numeric"
         onChange={handleChange('n_documento')}
+        error={errors.n_documento}
       />
 
       <PasswordInput
@@ -246,6 +259,7 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         onChange={handleChange('password')}
         placeholder="Contraseña"
         error={errors.password}
+        autoComplete="new-password"
       />
 
       <PasswordInput
@@ -254,6 +268,7 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         placeholder="Contraseña"
         onChange={handleChange('confirmPassword')}
         error={errors.confirmPassword}
+        autoComplete="new-password"
       />
 
       <div className={`form__terms ${errors.terms ? 'form__terms--error' : ''}`}>

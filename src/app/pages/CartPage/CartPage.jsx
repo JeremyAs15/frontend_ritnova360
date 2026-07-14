@@ -8,6 +8,19 @@ import Loader from '../../components/Loader/Loader';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import './CartPage.css';
 
+// Solo se guarda temporalmente la información de facturación (no la de pago:
+// número de tarjeta, CVV, vencimiento nunca se persisten, ni siquiera aquí).
+const BILLING_DRAFT_KEY = 'ritnova_checkout_billing_draft';
+const BILLING_FIELDS = ['first_name', 'last_name', 'doc_type', 'doc_number', 'phone', 'email', 'address', 'country', 'department', 'city'];
+
+function loadBillingDraft() {
+  try {
+    return JSON.parse(sessionStorage.getItem(BILLING_DRAFT_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
 function CartPage() {
   const navigate = useNavigate();
   const { cartItems, cartTotal, formatCOP, cartError, cartLoading, cartCheckoutLoading, refreshCart, checkout, clearCart, removeFromCart } = useCart();
@@ -18,6 +31,7 @@ function CartPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [checkoutCompletedItems, setCheckoutCompletedItems] = useState([]);
   const [checkoutTotal, setCheckoutTotal] = useState(0);
+  const [checkoutOrder, setCheckoutOrder] = useState(null);
   const [itemToRemove, setItemToRemove] = useState(null);
   const [removingItem, setRemovingItem] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -53,17 +67,18 @@ function CartPage() {
 
   const handleOpenPaymentModal = () => {
     setPaymentError(null);
+    const draft = loadBillingDraft();
     setPaymentForm({
-      first_name: profile?.first_name || '',
-      last_name: profile?.last_name || '',
-      doc_type: profile?.document_type || 'CC',
-      doc_number: profile?.n_documento || '',
-      phone: profile?.phone_number || '',
-      email: profile?.email || '',
-      address: '',
-      country: profile?.country || '',
-      department: profile?.department || '',
-      city: profile?.city || '',
+      first_name: draft.first_name || profile?.first_name || '',
+      last_name: draft.last_name || profile?.last_name || '',
+      doc_type: draft.doc_type || profile?.document_type || 'CC',
+      doc_number: draft.doc_number || profile?.n_documento || '',
+      phone: draft.phone || profile?.phone_number || '',
+      email: draft.email || profile?.email || '',
+      address: draft.address || '',
+      country: draft.country || profile?.country || '',
+      department: draft.department || profile?.department || '',
+      city: draft.city || profile?.city || '',
       card_number: '',
       cvv: '',
       expiry: '',
@@ -98,6 +113,15 @@ function CartPage() {
       setClearingCart(false);
     }
   };
+
+  // Guarda un borrador de los datos de facturación mientras el modal de pago
+  // está abierto, para no perderlos si la página se recarga por accidente.
+  useEffect(() => {
+    if (!showPaymentModal) return;
+    const draft = {};
+    BILLING_FIELDS.forEach((field) => { draft[field] = paymentForm[field]; });
+    sessionStorage.setItem(BILLING_DRAFT_KEY, JSON.stringify(draft));
+  }, [paymentForm, showPaymentModal]);
 
   const handlePaymentFormChange = (field, value) => {
     if (field === 'card_number') {
@@ -202,9 +226,14 @@ function CartPage() {
 
     const completedCart = await checkout({ billingInfo, paymentMethod, paymentData });
     if (completedCart) {
+      sessionStorage.removeItem(BILLING_DRAFT_KEY);
       setShowPaymentModal(false);
       setCheckoutCompletedItems([...cartItems]);
       setCheckoutTotal(cartTotal);
+      setCheckoutOrder({
+        id: completedCart.shopping_cart_id,
+        date: completedCart.date,
+      });
       setShowSuccessModal(true);
     }
   };
@@ -213,6 +242,7 @@ function CartPage() {
     setShowSuccessModal(false);
     setCheckoutCompletedItems([]);
     setCheckoutTotal(0);
+    setCheckoutOrder(null);
     if (redirectTo === 'dashboard') {
       navigate('/mis-compras');
     } else {
@@ -632,7 +662,10 @@ function CartPage() {
             </p>
 
             <div className="checkout-success-summary">
-              <p className="checkout-summary-heading">Resumen de inscripción:</p>
+              <p className="checkout-summary-heading">
+                Comprobante de compra {checkoutOrder?.id ? `N.º ${checkoutOrder.id}` : ''}
+                {checkoutOrder?.date ? ` · ${checkoutOrder.date}` : ''}
+              </p>
               <ul className="checkout-items-list">
                 {checkoutCompletedItems.map(item => (
                   <li key={item.id} className="checkout-item-name">
