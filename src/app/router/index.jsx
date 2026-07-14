@@ -9,6 +9,7 @@ import DashboardPage from '../pages/DashboardPage/DashboardPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage/ForgotPasswordPage';
 import RegisterChoreographyPage from '../pages/RegisterChoreographyPage/RegisterChoreographyPage';
 import CartPage from '../pages/CartPage/CartPage';
+import MyPurchasesPage from '../pages/MyPurchasesPage/MyPurchasesPage';
 import { useNavigate } from 'react-router-dom';
 
 function SignUpPageWrapper() {
@@ -35,6 +36,7 @@ function Router() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/coreografias/nueva" element={<RegisterChoreographyPage />} />
         <Route path="/carrito" element={<CartPage />} />
+        <Route path="/mis-compras" element={<MyPurchasesPage />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
