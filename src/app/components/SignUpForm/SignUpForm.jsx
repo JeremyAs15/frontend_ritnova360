@@ -21,6 +21,11 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
     email: '',
     password: '',
     confirmPassword: '',
+    phone_number: '',
+    birth_date: '',
+    genre: '',
+    document_type: '',
+    n_documento: '',
   });
 
   const [accepted, setAccepted] = useState(false);
@@ -51,6 +56,11 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
     if (!form.nombres.trim()) newErrors.nombres = 'El nombre es obligatorio';
     if (!form.apellidos.trim()) newErrors.apellidos = 'El apellido es obligatorio';
     if (!form.email.includes('@')) newErrors.email = 'Correo no válido';
+    if (!form.phone_number.trim()) newErrors.phone_number = 'El teléfono es obligatorio';
+    if (!form.birth_date) newErrors.birth_date = 'La fecha de nacimiento es obligatoria';
+    if (!form.genre) newErrors.genre = 'Selecciona un género';
+    if (!form.document_type) newErrors.document_type = 'Selecciona un tipo de documento';
+    if (!form.n_documento.trim()) newErrors.n_documento = 'El número de documento es obligatorio';
     if (form.password.length < 6) newErrors.password = 'Mínimo 6 caracteres';
     if (!accepted) newErrors.terms = 'Debes aceptar los términos';
     if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Las contraseñas no coinciden';
@@ -76,7 +86,12 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
           first_name: form.nombres,
           last_name: form.apellidos,
           email: form.email,
-          password: form.password
+          password: form.password,
+          phone_number: form.phone_number,
+          birth_date: form.birth_date || null,
+          genre: form.genre,
+          document_type: form.document_type,
+          n_documento: form.n_documento,
         })
       });
 
@@ -85,7 +100,10 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
       if (response.ok) {
         setServerStatus({ loading: false, error: null, success: '¡Cuenta creada con éxito! Redirigiendo a inicio de sesión...' });
         // Limpiamos el formulario
-        setForm({ nombres: '', apellidos: '', email: '', password: '' });
+        setForm({
+          nombres: '', apellidos: '', email: '', password: '', confirmPassword: '',
+          phone_number: '', birth_date: '', genre: '', document_type: '', n_documento: '',
+        });
         setAccepted(false);
         setTimeout(() => onSubmit?.(form), 1500);
       } else {
@@ -168,12 +186,80 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         error={errors.email}
       />
 
+      <div className="form__row">
+        <InputField
+          label="Teléfono"
+          type="tel"
+          value={form.phone_number}
+          placeholder="Ej: 321 777 1114"
+          onChange={handleChange('phone_number')}
+          autoComplete="off"
+          error={errors.phone_number}
+        />
+        <InputField
+          label="Fecha de nacimiento"
+          type="date"
+          value={form.birth_date}
+          onChange={handleChange('birth_date')}
+          error={errors.birth_date}
+        />
+      </div>
+
+      <div className="form__row">
+        <div className={`input-field ${errors.genre ? 'input-field--error' : ''}`}>
+          <label className="input-field__label">Género</label>
+          <div className="input-field__wrapper">
+            <select
+              className="input-field__input"
+              value={form.genre}
+              onChange={handleChange('genre')}
+            >
+              <option value="">Seleccionar</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="No binario">No binario</option>
+              <option value="Prefiero no decir">Prefiero no decir</option>
+            </select>
+          </div>
+          {errors.genre && <span className="input-field__error">{errors.genre}</span>}
+        </div>
+        <div className={`input-field ${errors.document_type ? 'input-field--error' : ''}`}>
+          <label className="input-field__label">Tipo de documento</label>
+          <div className="input-field__wrapper">
+            <select
+              className="input-field__input"
+              value={form.document_type}
+              onChange={handleChange('document_type')}
+            >
+              <option value="">Seleccionar</option>
+              <option value="CC">Cédula de Ciudadanía</option>
+              <option value="CE">Cédula de Extranjería</option>
+              <option value="NIT">NIT</option>
+              <option value="TI">Tarjeta de Identidad</option>
+              <option value="PASSPORT">Pasaporte</option>
+            </select>
+          </div>
+          {errors.document_type && <span className="input-field__error">{errors.document_type}</span>}
+        </div>
+      </div>
+
+      <InputField
+        label="Número de documento"
+        value={form.n_documento}
+        placeholder="Ej: 1234567890"
+        autoComplete="off"
+        inputMode="numeric"
+        onChange={handleChange('n_documento')}
+        error={errors.n_documento}
+      />
+
       <PasswordInput
         label="Contraseña"
         value={form.password}
         onChange={handleChange('password')}
         placeholder="Contraseña"
         error={errors.password}
+        autoComplete="new-password"
       />
 
       <PasswordInput
@@ -182,6 +268,7 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         placeholder="Contraseña"
         onChange={handleChange('confirmPassword')}
         error={errors.confirmPassword}
+        autoComplete="new-password"
       />
 
       <div className={`form__terms ${errors.terms ? 'form__terms--error' : ''}`}>

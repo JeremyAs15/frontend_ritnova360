@@ -1,6 +1,6 @@
-import { Pencil, Trash2, Film } from 'lucide-react';
+import { Eye, Pencil, Trash2, Film } from 'lucide-react';
 
-function ChoreographyTable({ choreographies, loading, onEdit, onDelete }) {
+function ChoreographyTable({ choreographies, loading, onView, onEdit, onDelete }) {
   return (
     <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
       <div className="overflow-x-auto">
@@ -41,10 +41,13 @@ function ChoreographyTable({ choreographies, loading, onEdit, onDelete }) {
                   <td className="px-6 py-4 font-medium text-slate-900">${ch.price}</td>
                   <td className="px-6 py-4 text-right">
                     <div className="inline-flex gap-2">
-                      <button onClick={() => onEdit(ch)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                      <button onClick={() => onView(ch)} title="Ver video" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-orange-600">
+                        <Eye size={16} />
+                      </button>
+                      <button onClick={() => onEdit(ch)} title="Editar" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
                         <Pencil size={16} />
                       </button>
-                      <button onClick={() => onDelete(ch.choreography_id)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-red-600">
+                      <button onClick={() => onDelete(ch.choreography_id)} title="Eliminar" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-red-600">
                         <Trash2 size={16} />
                       </button>
                     </div>

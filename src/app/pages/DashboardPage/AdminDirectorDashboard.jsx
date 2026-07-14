@@ -23,7 +23,7 @@ function AdminDirectorDashboard({ data, loading, range, onRangeChange, studentsC
   return (
     <div className={loading ? 'dashboard-refreshing' : undefined}>
       <div className="dashboard-kpi-grid">
-        <StatCard icon={Users} label="Usuarios internos" value={kpis.usuarios_internos} />
+        <StatCard icon={Users} label="Usuarios" value={kpis.usuarios_internos} />
         <StatCard icon={GraduationCap} label="Estudiantes registrados" value={studentsCount?.total_registrados ?? '—'} />
         <StatCard icon={Music2} label="Coreografías" value={kpis.total_coreografias} />
         <StatCard icon={ShoppingBag} label="Ventas del mes" value={kpis.ventas_mes} />

@@ -1,24 +1,41 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, ArrowLeft, CheckCircle, Sparkles, AlertCircle, Trash2, CreditCard, Landmark, X, User } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import { useCart } from '../../context/CartContext';
+import { useProfile } from '../../context/ProfileContext';
 import Loader from '../../components/Loader/Loader';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import './CartPage.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Solo se guarda temporalmente la información de facturación (no la de pago:
+// número de tarjeta, CVV, vencimiento nunca se persisten, ni siquiera aquí).
+const BILLING_DRAFT_KEY = 'ritnova_checkout_billing_draft';
+const BILLING_FIELDS = ['first_name', 'last_name', 'doc_type', 'doc_number', 'phone', 'email', 'address', 'country', 'department', 'city'];
+
+function loadBillingDraft() {
+  try {
+    return JSON.parse(sessionStorage.getItem(BILLING_DRAFT_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
 
 function CartPage() {
   const navigate = useNavigate();
   const { cartItems, cartTotal, formatCOP, cartError, cartLoading, cartCheckoutLoading, refreshCart, checkout, clearCart, removeFromCart } = useCart();
+  const { profile, profileLoading, profileError } = useProfile();
 
-  const [profile, setProfile] = useState(null);
-  const [profileError, setProfileError] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [checkoutCompletedItems, setCheckoutCompletedItems] = useState([]);
   const [checkoutTotal, setCheckoutTotal] = useState(0);
+  const [checkoutOrder, setCheckoutOrder] = useState(null);
+  const [itemToRemove, setItemToRemove] = useState(null);
+  const [removingItem, setRemovingItem] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearingCart, setClearingCart] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [paymentForm, setPaymentForm] = useState({
@@ -29,6 +46,9 @@ function CartPage() {
     phone: '',
     email: '',
     address: '',
+    country: '',
+    department: '',
+    city: '',
     card_number: '',
     cvv: '',
     expiry: '',
@@ -36,83 +56,29 @@ function CartPage() {
   });
   const [paymentError, setPaymentError] = useState(null);
 
-  const refreshAccessToken = useCallback(async () => {
-    const refresh = localStorage.getItem('refresh_token');
-    if (!refresh) return null;
-
-    const res = await fetch(`${API_BASE_URL}/api/users/token/refresh/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh }),
-    });
-
-    if (!res.ok) return null;
-
-    const data = await res.json();
-    localStorage.setItem('access_token', data.access);
-    return data.access;
-  }, []);
-
-  const fetchWithAuth = useCallback(async (url, options = {}) => {
-    const accessToken = localStorage.getItem('access_token');
-    if (!accessToken) return null;
-
-    const defaultHeaders = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
-    let res = await fetch(url, { ...options, headers: { ...defaultHeaders, ...options.headers } });
-
-    if (res.status === 401) {
-      const newAccessToken = await refreshAccessToken();
-      if (!newAccessToken) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        navigate('/login');
-        return null;
-      }
-
-      res = await fetch(url, {
-        ...options,
-        headers: { ...defaultHeaders, Authorization: `Bearer ${newAccessToken}` },
-      });
-    }
-
-    return res;
-  }, [navigate, refreshAccessToken]);
-
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
+    if (!localStorage.getItem('access_token')) {
       navigate('/login');
       return;
     }
 
-    fetchWithAuth(`${API_BASE_URL}/api/users/profile/`)
-      .then((res) => {
-        if (!res) return null;
-        if (!res.ok) throw new Error('No se pudo cargar tu perfil.');
-        return res.json();
-      })
-      .then((data) => {
-        if (data) setProfile(data);
-      })
-      .catch((err) => setProfileError(err.message));
-
     refreshCart();
-  }, [navigate, refreshCart, fetchWithAuth]);
+  }, [navigate, refreshCart]);
 
   const handleOpenPaymentModal = () => {
     setPaymentError(null);
+    const draft = loadBillingDraft();
     setPaymentForm({
-      first_name: profile?.first_name || '',
-      last_name: profile?.last_name || '',
-      doc_type: 'CC',
-      doc_number: '',
-      phone: '',
-      email: profile?.email || '',
-      address: '',
+      first_name: draft.first_name || profile?.first_name || '',
+      last_name: draft.last_name || profile?.last_name || '',
+      doc_type: draft.doc_type || profile?.document_type || 'CC',
+      doc_number: draft.doc_number || profile?.n_documento || '',
+      phone: draft.phone || profile?.phone_number || '',
+      email: draft.email || profile?.email || '',
+      address: draft.address || '',
+      country: draft.country || profile?.country || '',
+      department: draft.department || profile?.department || '',
+      city: draft.city || profile?.city || '',
       card_number: '',
       cvv: '',
       expiry: '',
@@ -126,6 +92,36 @@ function CartPage() {
     setShowPaymentModal(false);
     setPaymentError(null);
   };
+
+  const handleConfirmRemoveItem = async () => {
+    if (!itemToRemove) return;
+    setRemovingItem(true);
+    try {
+      await removeFromCart(itemToRemove.id);
+      setItemToRemove(null);
+    } finally {
+      setRemovingItem(false);
+    }
+  };
+
+  const handleConfirmClearCart = async () => {
+    setClearingCart(true);
+    try {
+      await clearCart();
+      setShowClearConfirm(false);
+    } finally {
+      setClearingCart(false);
+    }
+  };
+
+  // Guarda un borrador de los datos de facturación mientras el modal de pago
+  // está abierto, para no perderlos si la página se recarga por accidente.
+  useEffect(() => {
+    if (!showPaymentModal) return;
+    const draft = {};
+    BILLING_FIELDS.forEach((field) => { draft[field] = paymentForm[field]; });
+    sessionStorage.setItem(BILLING_DRAFT_KEY, JSON.stringify(draft));
+  }, [paymentForm, showPaymentModal]);
 
   const handlePaymentFormChange = (field, value) => {
     if (field === 'card_number') {
@@ -170,6 +166,18 @@ function CartPage() {
       setPaymentError('Debe ingresar su dirección');
       return;
     }
+    if (!paymentForm.country.trim()) {
+      setPaymentError('Debe ingresar su país');
+      return;
+    }
+    if (!paymentForm.department.trim()) {
+      setPaymentError('Debe ingresar su departamento');
+      return;
+    }
+    if (!paymentForm.city.trim()) {
+      setPaymentError('Debe ingresar su ciudad');
+      return;
+    }
 
     const billingInfo = {
       first_name: paymentForm.first_name.trim(),
@@ -179,6 +187,9 @@ function CartPage() {
       phone: paymentForm.phone.trim(),
       email: paymentForm.email.trim(),
       address: paymentForm.address.trim(),
+      country: paymentForm.country.trim(),
+      department: paymentForm.department.trim(),
+      city: paymentForm.city.trim(),
     };
 
     let paymentData;
@@ -215,9 +226,14 @@ function CartPage() {
 
     const completedCart = await checkout({ billingInfo, paymentMethod, paymentData });
     if (completedCart) {
+      sessionStorage.removeItem(BILLING_DRAFT_KEY);
       setShowPaymentModal(false);
       setCheckoutCompletedItems([...cartItems]);
       setCheckoutTotal(cartTotal);
+      setCheckoutOrder({
+        id: completedCart.shopping_cart_id,
+        date: completedCart.date,
+      });
       setShowSuccessModal(true);
     }
   };
@@ -226,12 +242,17 @@ function CartPage() {
     setShowSuccessModal(false);
     setCheckoutCompletedItems([]);
     setCheckoutTotal(0);
+    setCheckoutOrder(null);
     if (redirectTo === 'dashboard') {
       navigate('/mis-compras');
     } else {
       navigate('/');
     }
   };
+
+  if (profileLoading && !profile && !profileError) {
+    return <Loader fullscreen label="Cargando..." />;
+  }
 
   const fallbackSidebar = getSidebarConfigForRole('student');
   const { navItems, roleLabel } = profile ? getSidebarConfigForRole(profile.role) : fallbackSidebar;
@@ -316,7 +337,7 @@ function CartPage() {
 
                       <div className="cart-item-price-actions">
                         <span className="cart-item-price">${course.price} COP</span>
-                        <button className="cart-item-remove-btn" onClick={() => removeFromCart(course.id)} title="Eliminar del carrito">
+                        <button className="cart-item-remove-btn" onClick={() => setItemToRemove(course)} title="Eliminar del carrito">
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -346,7 +367,7 @@ function CartPage() {
                     {cartCheckoutLoading ? 'Procesando...' : 'Proceder al pago'}
                   </button>
 
-                  <button className="cart-clear-btn" onClick={clearCart}>
+                  <button className="cart-clear-btn" onClick={() => setShowClearConfirm(true)}>
                     Vaciar carrito
                   </button>
                 </div>
@@ -355,6 +376,28 @@ function CartPage() {
           )}
         </div>
       </main>
+
+      {/* Confirmar eliminación de un ítem */}
+      <ConfirmModal
+        open={!!itemToRemove}
+        title="¿Eliminar del carrito?"
+        message={<>¿Estás seguro de que deseas eliminar <strong>{itemToRemove?.title}</strong> de tu carrito?</>}
+        confirmLabel="Eliminar"
+        onConfirm={handleConfirmRemoveItem}
+        onCancel={() => setItemToRemove(null)}
+        loading={removingItem}
+      />
+
+      {/* Confirmar vaciado del carrito */}
+      <ConfirmModal
+        open={showClearConfirm}
+        title="¿Vaciar el carrito?"
+        message="Se eliminarán todos los cursos que agregaste. Esta acción no se puede deshacer."
+        confirmLabel="Vaciar carrito"
+        onConfirm={handleConfirmClearCart}
+        onCancel={() => setShowClearConfirm(false)}
+        loading={clearingCart}
+      />
 
       {/* Modal de Pago */}
       {showPaymentModal && (
@@ -414,6 +457,7 @@ function CartPage() {
                       <option value="CE">Cédula Extranjería</option>
                       <option value="NIT">NIT</option>
                       <option value="TI">Tarjeta Identidad</option>
+                      <option value="PASSPORT">Pasaporte</option>
                     </select>
                   </div>
                   <div className="payment-form-group">
@@ -454,9 +498,41 @@ function CartPage() {
                   <input
                     className="payment-form-input"
                     type="text"
-                    placeholder="Cra 1 # 2-3, Ciudad"
+                    placeholder="Cra 1 # 2-3"
                     value={paymentForm.address}
                     onChange={(e) => handlePaymentFormChange('address', e.target.value)}
+                  />
+                </div>
+                <div className="payment-form-row">
+                  <div className="payment-form-group">
+                    <label className="payment-form-label">País <span className="payment-form-required">*</span></label>
+                    <input
+                      className="payment-form-input"
+                      type="text"
+                      placeholder="Colombia"
+                      value={paymentForm.country}
+                      onChange={(e) => handlePaymentFormChange('country', e.target.value)}
+                    />
+                  </div>
+                  <div className="payment-form-group">
+                    <label className="payment-form-label">Departamento <span className="payment-form-required">*</span></label>
+                    <input
+                      className="payment-form-input"
+                      type="text"
+                      placeholder="Valle del Cauca"
+                      value={paymentForm.department}
+                      onChange={(e) => handlePaymentFormChange('department', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="payment-form-group">
+                  <label className="payment-form-label">Ciudad <span className="payment-form-required">*</span></label>
+                  <input
+                    className="payment-form-input"
+                    type="text"
+                    placeholder="Cali"
+                    value={paymentForm.city}
+                    onChange={(e) => handlePaymentFormChange('city', e.target.value)}
                   />
                 </div>
               </div>
@@ -586,7 +662,10 @@ function CartPage() {
             </p>
 
             <div className="checkout-success-summary">
-              <p className="checkout-summary-heading">Resumen de inscripción:</p>
+              <p className="checkout-summary-heading">
+                Comprobante de compra {checkoutOrder?.id ? `N.º ${checkoutOrder.id}` : ''}
+                {checkoutOrder?.date ? ` · ${checkoutOrder.date}` : ''}
+              </p>
               <ul className="checkout-items-list">
                 {checkoutCompletedItems.map(item => (
                   <li key={item.id} className="checkout-item-name">

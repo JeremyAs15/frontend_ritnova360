@@ -280,6 +280,33 @@
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
 }
 
+.admin-field__password-wrap {
+  position: relative;
+  display: flex;
+}
+
+.admin-field__password-wrap .admin-field__input {
+  padding-right: 44px;
+}
+
+.admin-field__password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.admin-field__password-toggle:hover {
+  color: var(--color-text);
+}
+
 .admin-field__error {
   font-size: 0.78rem;
   color: var(--alert-error-color);

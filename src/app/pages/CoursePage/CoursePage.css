@@ -227,6 +227,10 @@
 }
 
 .course-hero__card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 13px 20px;
   border-radius: var(--radius-md);
@@ -257,6 +261,16 @@
 
 .course-hero__card-btn--ghost:hover {
   background: var(--color-orange-light);
+}
+
+.course-hero__card-btn--danger-ghost {
+  background: transparent;
+  color: var(--alert-error-color);
+  border: 1.5px solid var(--alert-error-color);
+}
+
+.course-hero__card-btn--danger-ghost:hover {
+  background: var(--alert-error-bg);
 }
 
 .course-hero__card-guarantee {
@@ -419,6 +433,23 @@
 .course-page__toast--error {
   background: #dc2626;
   color: #fff;
+}
+
+.course-page__toast-action {
+  background: rgba(255, 255, 255, 0.18);
+  border: none;
+  color: inherit;
+  font-weight: 700;
+  font-size: 0.875rem;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.course-page__toast-action:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 @keyframes toast-in {

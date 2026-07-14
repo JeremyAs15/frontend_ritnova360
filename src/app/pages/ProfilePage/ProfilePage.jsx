@@ -3,6 +3,7 @@ import { Calendar, Clock, ShoppingBag, User } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import InputField from '../../components/InputField/InputField';
 import Loader from '../../components/Loader/Loader';
+import { useProfile } from '../../context/ProfileContext';
 import './ProfilePage.css';
 
 const DANCE_GENRES = ['Salsa', 'Bachata', 'Hip-Hop', 'Reggaetón', 'Zumba', 'Dancehall'];
@@ -19,94 +20,99 @@ function StatCard({ icon: Icon, label, value }) {
 
 function ProfilePage() {
   const [collapsed, setCollapsed] = useState(false);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { profile, profileLoading, profileError, setProfile } = useProfile();
   const [stats, setStats] = useState({
     comprados: 0,
     horas: '0h',
     vistos: 0
   });
-  const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [passwordForm, setPasswordForm] = useState({old_password: '', new_password: '', confirm_password: ''});
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  
+
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    if (!profile) return;
 
-    fetch(`${import.meta.env.VITE_API_URL}/api/users/profile/`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Error al cargar el perfil');
-        return res.json();
+    if (profile.role === 'student') {
+      const token = localStorage.getItem('access_token');
+      fetch(`${import.meta.env.VITE_API_URL}/api/academy/dashboard/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
       })
-      .then(data => {
-        setProfile(data);
-        setForm({
-          first_name:   data.first_name   || '',
-          last_name:    data.last_name    || '',
-          phone_number: data.phone_number || '',
-          birth_date:   data.birth_date   || '',
-          genre:        data.genre        || '',
-        });
+        .then(res => (res.ok ? res.json() : null))
+        .then(dashData => {
+          if (dashData && dashData.kpis) {
+            const totalVistos = dashData.kpis.videos_vistos || 0;
+            // Estimación aproximada: cada video visto equivale a 0.5 horas (30 minutos) de estudio/práctica
+            const horasCalculadas = (totalVistos * 0.5).toFixed(1);
 
-        if (data.role === 'student') {
-          fetch(`${import.meta.env.VITE_API_URL}/api/academy/dashboard/`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          })
-            .then(res => (res.ok ? res.json() : null))
-            .then(dashData => {
-              if (dashData && dashData.kpis) {
-                const totalVistos = dashData.kpis.videos_vistos || 0;
-                // Estimación aproximada: cada video visto equivale a 0.5 horas (30 minutos) de estudio/práctica
-                const horasCalculadas = (totalVistos * 0.5).toFixed(1);
-                
-                setStats({
-                  comprados: dashData.kpis.coreografias_compradas || 0,
-                  horas: `${horasCalculadas}h`,
-                  vistos: totalVistos
-                });
-              }
-            })
-            .catch(() => {});
-        }
-
-      })
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+            setStats({
+              comprados: dashData.kpis.coreografias_compradas || 0,
+              horas: `${horasCalculadas}h`,
+              vistos: totalVistos
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [profile]);
 
   const handleEdit = () => {
+    setForm({
+      first_name:    profile.first_name    || '',
+      last_name:     profile.last_name     || '',
+      phone_number:  profile.phone_number  || '',
+      birth_date:    profile.birth_date    || '',
+      genre:         profile.genre         || '',
+      document_type: profile.document_type || '',
+      n_documento:   profile.n_documento   || '',
+    });
     setSaveError(null);
     setSaveSuccess(false);
+    setFormErrors({});
     setEditing(true);
   };
 
   const handleCancel = () => {
     setForm({
-      first_name:   profile.first_name   || '',
-      last_name:    profile.last_name    || '',
-      phone_number: profile.phone_number || '',
-      birth_date:   profile.birth_date   || '',
-      genre:        profile.genre        || '',
+      first_name:    profile.first_name    || '',
+      last_name:     profile.last_name     || '',
+      phone_number:  profile.phone_number  || '',
+      birth_date:    profile.birth_date    || '',
+      genre:         profile.genre         || '',
+      document_type: profile.document_type || '',
+      n_documento:   profile.n_documento   || '',
     });
-    setPasswordForm({ 
-    old_password: '', 
-    new_password: '', 
-    confirm_password: '' 
+    setPasswordForm({
+    old_password: '',
+    new_password: '',
+    confirm_password: ''
     });
     setSaveError(null);
+    setFormErrors({});
     setEditing(false);
   };
 
   const handleChange = (e) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    if (formErrors[e.target.name]) setFormErrors(prev => ({ ...prev, [e.target.name]: '' }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!form.first_name?.trim()) newErrors.first_name = 'El nombre es obligatorio';
+    if (!form.last_name?.trim()) newErrors.last_name = 'El apellido es obligatorio';
+    if (!form.phone_number?.trim()) newErrors.phone_number = 'El teléfono es obligatorio';
+    if (!form.birth_date) newErrors.birth_date = 'La fecha de nacimiento es obligatoria';
+    if (!form.genre) newErrors.genre = 'Selecciona un género';
+    if (!form.document_type) newErrors.document_type = 'Selecciona un tipo de documento';
+    if (!form.n_documento?.trim()) newErrors.n_documento = 'El número de documento es obligatorio';
+    return newErrors;
   };
 
   const refreshToken = async () => {
@@ -125,6 +131,13 @@ function ProfilePage() {
   };
 
   const handleSave = async () => {
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      setSaveError('Revisa los campos marcados.');
+      return;
+    }
+
     setSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
@@ -205,23 +218,15 @@ function ProfilePage() {
   };
 
 
-  if (loading) return (
-    <div className="profile-layout">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
-      <main className="profile-main">
-        <Loader label="Cargando perfil..." />
-      </main>
+  if (profileError) return (
+    <div className="loader-wrap loader-wrap--fullscreen">
+      <p style={{ color: 'var(--alert-error-color)', fontSize: '1.05rem' }}>{profileError}</p>
     </div>
   );
 
-  if (error) return (
-    <div className="profile-layout">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
-      <main className="profile-main">
-        <p style={{ color: 'var(--alert-error-color)', fontSize: '1.05rem' }}>{error}</p>
-      </main>
-    </div>
-  );
+  if (profileLoading || !profile) {
+    return <Loader fullscreen label="Cargando perfil..." />;
+  }
 
   const fullName = `${profile.first_name} ${profile.last_name}`;
   const joinDate = new Date(profile.date_joined).toLocaleDateString('es-CO');
@@ -297,6 +302,7 @@ function ProfilePage() {
                         value={form.first_name}
                         onChange={e => setForm(prev => ({ ...prev, first_name: e.target.value }))}
                         placeholder="Tu nombre"
+                        error={formErrors.first_name}
                       />
                     ) : (
                       <div className="profile-field__value">{profile.first_name}</div>
@@ -310,6 +316,7 @@ function ProfilePage() {
                         value={form.last_name}
                         onChange={e => setForm(prev => ({ ...prev, last_name: e.target.value }))}
                         placeholder="Tus apellidos"
+                        error={formErrors.last_name}
                       />
                     ) : (
                       <div className="profile-field__value">{profile.last_name}</div>
@@ -331,6 +338,7 @@ function ProfilePage() {
                         value={form.phone_number}
                         onChange={e => setForm(prev => ({ ...prev, phone_number: e.target.value }))}
                         placeholder="Ej: 321 777 1114"
+                        error={formErrors.phone_number}
                       />
                     ) : (
                       <div className="profile-field__value">{profile.phone_number || '—'}</div>
@@ -338,15 +346,56 @@ function ProfilePage() {
                   </div>
 
                   <div className="profile-field">
+                    <label className="profile-field__label">Tipo de documento</label>
+                    {editing ? (
+                      <>
+                        <select
+                          className={`profile-field__input ${formErrors.document_type ? 'profile-field__input--error' : ''}`}
+                          name="document_type"
+                          value={form.document_type}
+                          onChange={handleChange}
+                        >
+                          <option value="">Seleccionar</option>
+                          <option value="CC">Cédula de Ciudadanía</option>
+                          <option value="CE">Cédula de Extranjería</option>
+                          <option value="NIT">NIT</option>
+                          <option value="TI">Tarjeta de Identidad</option>
+                          <option value="PASSPORT">Pasaporte</option>
+                        </select>
+                        {formErrors.document_type && <span className="profile-field__error">{formErrors.document_type}</span>}
+                      </>
+                    ) : (
+                      <div className="profile-field__value">{profile.document_type || '—'}</div>
+                    )}
+                  </div>
+
+                  <div className="profile-field">
+                    <label className="profile-field__label">Número de documento</label>
+                    {editing ? (
+                      <InputField
+                        value={form.n_documento}
+                        onChange={e => setForm(prev => ({ ...prev, n_documento: e.target.value }))}
+                        placeholder="Ej: 1234567890"
+                        error={formErrors.n_documento}
+                      />
+                    ) : (
+                      <div className="profile-field__value">{profile.n_documento || '—'}</div>
+                    )}
+                  </div>
+
+                  <div className="profile-field">
                     <label className="profile-field__label">Fecha de nacimiento</label>
                     {editing ? (
-                      <input
-                        className="profile-field__input"
-                        name="birth_date"
-                        type="date"
-                        value={form.birth_date}
-                        onChange={handleChange}
-                      />
+                      <>
+                        <input
+                          className={`profile-field__input ${formErrors.birth_date ? 'profile-field__input--error' : ''}`}
+                          name="birth_date"
+                          type="date"
+                          value={form.birth_date}
+                          onChange={handleChange}
+                        />
+                        {formErrors.birth_date && <span className="profile-field__error">{formErrors.birth_date}</span>}
+                      </>
                     ) : (
                       <div className="profile-field__value">{profile.birth_date || '—'}</div>
                     )}
@@ -355,18 +404,21 @@ function ProfilePage() {
                   <div className="profile-field">
                     <label className="profile-field__label">Género</label>
                     {editing ? (
-                      <select
-                        className="profile-field__input"
-                        name="genre"
-                        value={form.genre}
-                        onChange={handleChange}
-                      >
-                        <option value="">Seleccionar</option>
-                        <option value="Masculino">Masculino</option>
-                        <option value="Femenino">Femenino</option>
-                        <option value="No binario">No binario</option>
-                        <option value="Prefiero no decir">Prefiero no decir</option>
-                      </select>
+                      <>
+                        <select
+                          className={`profile-field__input ${formErrors.genre ? 'profile-field__input--error' : ''}`}
+                          name="genre"
+                          value={form.genre}
+                          onChange={handleChange}
+                        >
+                          <option value="">Seleccionar</option>
+                          <option value="Masculino">Masculino</option>
+                          <option value="Femenino">Femenino</option>
+                          <option value="No binario">No binario</option>
+                          <option value="Prefiero no decir">Prefiero no decir</option>
+                        </select>
+                        {formErrors.genre && <span className="profile-field__error">{formErrors.genre}</span>}
+                      </>
                     ) : (
                       <div className="profile-field__value">{profile.genre || '—'}</div>
                     )}

@@ -41,6 +41,22 @@
   backdrop-filter: blur(4px);
 }
 
+.course-card__purchased {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #16a34a;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(4px);
+}
+
 .course-card__body {
   padding: 16px;
   display: flex;

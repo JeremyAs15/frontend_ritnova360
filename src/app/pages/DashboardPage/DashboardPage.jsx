@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import Loader from '../../components/Loader/Loader';
+import { useProfile } from '../../context/ProfileContext';
 import { getDashboardData, getStudentsCount } from '../../services/dashboardService';
 import AdminDirectorDashboard from './AdminDirectorDashboard';
 import TeacherDashboard from './TeacherDashboard';
 import StudentDashboard from './StudentDashboard';
 import './DashboardPage.css';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const ROLE_GREETING = {
   admin: 'este es el desempeño general de Ritnova 360.',
@@ -20,8 +19,7 @@ const ROLE_GREETING = {
 function DashboardPage() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const [profile, setProfile] = useState(null);
-  const [profileError, setProfileError] = useState(null);
+  const { profile, profileLoading, profileError } = useProfile();
 
   const [dashboardData, setDashboardData] = useState(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
@@ -29,24 +27,10 @@ function DashboardPage() {
   const [range, setRange] = useState(null);
   const [studentsCount, setStudentsCount] = useState(null);
 
-  // El JWT de este backend no trae el rol en el payload, así que se obtiene
-  // del mismo endpoint de perfil que ya usa ProfilePage.
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
+    if (!localStorage.getItem('access_token')) {
       navigate('/login');
-      return;
     }
-
-    fetch(`${API_BASE_URL}/api/users/profile/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('No se pudo cargar tu perfil.');
-        return res.json();
-      })
-      .then(setProfile)
-      .catch((err) => setProfileError(err.message));
   }, [navigate]);
 
   useEffect(() => {
@@ -86,14 +70,8 @@ function DashboardPage() {
     );
   }
 
-  if (!profile) {
-    return (
-      <div className="dashboard-layout">
-        <main className="dashboard-main">
-          <Loader label="Cargando tu panel..." />
-        </main>
-      </div>
-    );
+  if (profileLoading || !profile) {
+    return <Loader fullscreen label="Cargando tu panel..." />;
   }
 
   const { navItems, roleLabel } = getSidebarConfigForRole(profile.role);

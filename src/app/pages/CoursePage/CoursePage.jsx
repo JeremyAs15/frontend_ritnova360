@@ -3,10 +3,15 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { COURSES } from '../../data/courses';
 import { ArrowLeft, Play, Clock, Users, Star, CheckCircle, XCircle } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useProfile } from '../../context/ProfileContext';
+import { getUserRoleFromToken } from '../../utils/auth';
 import Loader from '../../components/Loader/Loader';
+import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
+import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import './CoursePage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const STAFF_ROLES = ['admin', 'director', 'teacher'];
 
 function mapAPIToCourse(ch) {
   const clips = ch.video_clips || [];
@@ -51,15 +56,34 @@ function mapLocalToCourse(c) {
 function CoursePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, cartAdding, isInCart, refreshCart } = useCart();
+  const { addToCart, cartAdding, isInCart, removeFromCart, refreshCart } = useCart();
+  const role = getUserRoleFromToken(localStorage.getItem('access_token')) ?? localStorage.getItem('role');
+  const canPurchase = !STAFF_ROLES.includes(role);
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [removingFromCart, setRemovingFromCart] = useState(false);
+  const [purchasedIds, setPurchasedIds] = useState(new Set());
+  const [isAuthenticated] = useState(!!localStorage.getItem('access_token'));
+  const { profile, profileLoading } = useProfile();
+  const [collapsed, setCollapsed] = useState(false);
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
+  const showToast = (message, type = 'success', action = null) => {
+    setToast({ message, type, action });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleConfirmRemoveFromCart = async () => {
+    setRemovingFromCart(true);
+    try {
+      await removeFromCart(course.id);
+      setShowRemoveConfirm(false);
+      showToast('Coreografía eliminada del carrito');
+    } finally {
+      setRemovingFromCart(false);
+    }
   };
 
   useEffect(() => {
@@ -96,14 +120,24 @@ function CoursePage() {
 
   useEffect(() => {
     refreshCart();
+
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
+    fetch(`${API_BASE_URL}/api/academy/my-courses/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setPurchasedIds(new Set((data || []).map((e) => e.choreography))))
+      .catch(() => {});
   }, [refreshCart]);
 
-  if (loading) {
-    return <Loader label="Cargando curso..." fullscreen />;
-  }
+  let pageContent;
 
-  if (!course) {
-    return (
+  if (loading) {
+    pageContent = <Loader label="Cargando curso..." />;
+  } else if (!course) {
+    pageContent = (
       <div className="course-page__not-found">
         <ArrowLeft className="course-page__back-icon" />
         <Link to="/" className="course-page__back-link">
@@ -116,9 +150,8 @@ function CoursePage() {
         </Link>
       </div>
     );
-  }
-
-  return (
+  } else {
+    pageContent = (
     <div className="course-page">
       <div className="course-page__main">
         <div className="course-page__breadcrumb">
@@ -197,19 +230,42 @@ function CoursePage() {
                 <span className="course-hero__card-price-currency">$</span>
                 <span className="course-hero__card-price-amount">{course.price}</span>
               </p>
-              <button
-                className="course-hero__card-btn course-hero__card-btn--primary"
-                disabled={cartAdding || isInCart(course.id)}
-                onClick={async () => {
-                  await addToCart(course.id);
-                  showToast('Coreografía agregada al carrito');
-                }}
-              >
-                {cartAdding ? 'Agregando...' : isInCart(course.id) ? 'Ya está en el carrito' : 'Agregar al carrito'}
-              </button>
-              <p className="course-hero__card-guarantee">
-                Cancelación gratuita hasta 7 días
-              </p>
+              {canPurchase && (
+                <>
+                  {purchasedIds.has(course.id) ? (
+                    <button
+                      className="course-hero__card-btn course-hero__card-btn--ghost"
+                      onClick={() => navigate('/mis-compras')}
+                    >
+                      <CheckCircle size={16} /> Ir a mi biblioteca
+                    </button>
+                  ) : isInCart(course.id) ? (
+                    <button
+                      className="course-hero__card-btn course-hero__card-btn--danger-ghost"
+                      onClick={() => setShowRemoveConfirm(true)}
+                    >
+                      Quitar del carrito
+                    </button>
+                  ) : (
+                    <button
+                      className="course-hero__card-btn course-hero__card-btn--primary"
+                      disabled={cartAdding}
+                      onClick={async () => {
+                        await addToCart(course.id);
+                        showToast('Coreografía agregada al carrito', 'success', {
+                          label: 'Ver carrito',
+                          onClick: () => navigate('/carrito'),
+                        });
+                      }}
+                    >
+                      {cartAdding ? 'Agregando...' : 'Agregar al carrito'}
+                    </button>
+                  )}
+                  <p className="course-hero__card-guarantee">
+                    Cancelación gratuita hasta 7 días
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -231,12 +287,56 @@ function CoursePage() {
         </div>
       </div>
 
+      <ConfirmModal
+        open={showRemoveConfirm}
+        title="¿Quitar del carrito?"
+        message={<>¿Estás seguro de que deseas quitar <strong>{course.title}</strong> de tu carrito?</>}
+        confirmLabel="Quitar"
+        onConfirm={handleConfirmRemoveFromCart}
+        onCancel={() => setShowRemoveConfirm(false)}
+        loading={removingFromCart}
+      />
+
       {toast && (
         <div className={`course-page__toast course-page__toast--${toast.type}`}>
           {toast.type === 'success' ? <CheckCircle size={18} /> : <XCircle size={18} />}
           <span>{toast.message}</span>
+          {toast.action && (
+            <button className="course-page__toast-action" onClick={toast.action.onClick}>
+              {toast.action.label}
+            </button>
+          )}
         </div>
       )}
+    </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return loading ? <Loader label="Cargando curso..." fullscreen /> : pageContent;
+  }
+
+  if (profileLoading && !profile) {
+    return <Loader fullscreen label="Cargando..." />;
+  }
+
+  const { navItems, roleLabel } = getSidebarConfigForRole(profile?.role);
+  const fullName = profile
+    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email
+    : 'Usuario';
+
+  return (
+    <div className="dashboard-layout">
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((c) => !c)}
+        userName={fullName}
+        userRole={roleLabel}
+        navItems={navItems}
+      />
+      <main className="dashboard-main">
+        {pageContent}
+      </main>
     </div>
   );
 }
