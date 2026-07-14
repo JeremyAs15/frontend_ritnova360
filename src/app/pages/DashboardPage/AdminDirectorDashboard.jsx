@@ -1,4 +1,4 @@
-import { Users, Music2, ShoppingBag, TrendingUp, PieChart, Trophy } from 'lucide-react';
+import { Users, Music2, ShoppingBag, TrendingUp, PieChart, Trophy, GraduationCap } from 'lucide-react';
 import StatCard from '../../components/StatCard/StatCard';
 import AreaChart from '../../components/charts/AreaChart';
 import DonutChart from '../../components/charts/DonutChart';
@@ -9,7 +9,7 @@ import Loader from '../../components/Loader/Loader';
 import { formatCurrencyCompact, formatCurrencyFull } from '../../components/charts/chartTheme';
 
 /** Dashboard de Administrador y Director (misma vista, mismos datos del backend). */
-function AdminDirectorDashboard({ data, loading, range, onRangeChange }) {
+function AdminDirectorDashboard({ data, loading, range, onRangeChange, studentsCount }) {
   if (!data) {
     return <Loader label="Cargando indicadores..." />;
   }
@@ -24,6 +24,7 @@ function AdminDirectorDashboard({ data, loading, range, onRangeChange }) {
     <div className={loading ? 'dashboard-refreshing' : undefined}>
       <div className="dashboard-kpi-grid">
         <StatCard icon={Users} label="Usuarios internos" value={kpis.usuarios_internos} />
+        <StatCard icon={GraduationCap} label="Estudiantes registrados" value={studentsCount?.total_registrados ?? '—'} />
         <StatCard icon={Music2} label="Coreografías" value={kpis.total_coreografias} />
         <StatCard icon={ShoppingBag} label="Ventas del mes" value={kpis.ventas_mes} />
         <StatCard icon={TrendingUp} label="Ingresos del mes" value={formatCurrencyFull(kpis.ingresos_mes)} />
