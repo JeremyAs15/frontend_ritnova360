@@ -19,6 +19,7 @@ const ADMIN_NAV_ITEMS = [
   { title: 'Dashboard',              url: '/dashboard',              icon: LayoutDashboard },
   { title: 'Usuarios',      url: '/admin/users',            icon: Users           },
   { title: 'Catálogo coreografías',  url: '/coreografias/nueva',   icon: ClipboardList   },
+  { title: 'Mi perfil',              url: '/perfil',                 icon: User            },
 ];
 
 // Ítems para profesor y director (ambos gestionan coreografías, ver academy/services.py → create_choreography)
