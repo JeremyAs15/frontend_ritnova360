@@ -10,6 +10,7 @@ import ForgotPasswordPage from '../pages/ForgotPasswordPage/ForgotPasswordPage';
 import RegisterChoreographyPage from '../pages/RegisterChoreographyPage/RegisterChoreographyPage';
 import CartPage from '../pages/CartPage/CartPage';
 import MyPurchasesPage from '../pages/MyPurchasesPage/MyPurchasesPage';
+import ClassroomPage from '../pages/ClassroomPage/ClassroomPage';
 import { useNavigate } from 'react-router-dom';
 
 function SignUpPageWrapper() {
@@ -31,6 +32,7 @@ function Router() {
         <Route path="/signup" element={<SignUpPageWrapper />} />
         <Route path="/admin/users" element={<AdminPage />} />
         <Route path="/curso/:id" element={<CoursePage />} />
+        <Route path="/clase/:id" element={<ClassroomPage />} /> 
         <Route path="/perfil" element={<ProfilePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
