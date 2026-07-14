@@ -44,7 +44,7 @@ function ChoreographyTable({ choreographies, loading, onEdit, onDelete }) {
                       <button onClick={() => onEdit(ch)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
                         <Pencil size={16} />
                       </button>
-                      <button onClick={() => onDelete(ch.id)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-red-600">
+                      <button onClick={() => onDelete(ch.choreography_id)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-red-600">
                         <Trash2 size={16} />
                       </button>
                     </div>
