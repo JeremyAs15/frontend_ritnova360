@@ -1,11 +1,11 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../../utils/auth';
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import CourseCard from '../../components/CourseCard/CourseCard';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import Loader from '../../components/Loader/Loader';
+import { useProfile } from '../../context/ProfileContext';
 import { COURSES } from '../../data/courses';
 
 // Imágenes
@@ -31,39 +31,24 @@ function HomePage() {
   const [difficulty, setDifficulty] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("access_token"));
+  const [isAuthenticated] = useState(!!localStorage.getItem("access_token"));
   const [collapsed, setCollapsed] = useState(false);
-  const [profile, setProfile] = useState(null);
+  const { profile, profileLoading, profileError } = useProfile();
   const [purchasedIds, setPurchasedIds] = useState(new Set());
 
   const GENRES = ['Salsa', 'Bachata', 'Merengue', 'Reggaetón', 'Hip-Hop', 'Pop', 'Dancehall', 'Zumba'];
   const DIFFICULTIES = ['Principiante', 'Intermedio', 'Avanzado', 'Todos los niveles'];
 
   useEffect(() => {
-    if (isAuthenticated) {
-      const token = localStorage.getItem('access_token');
-      fetch(`${API_BASE_URL}/api/users/profile/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => {
-          if (!res.ok) {
-            if (res.status === 401) logout(); 
-            return Promise.reject();
-          }
-          return res.json();
-        })
-        .then(setProfile)
-        .catch(() => {
-          setIsAuthenticated(false);
-        });
+    if (!isAuthenticated) return;
+    const token = localStorage.getItem('access_token');
 
-      fetch(`${API_BASE_URL}/api/academy/my-courses/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => (res.ok ? res.json() : []))
-        .then((data) => setPurchasedIds(new Set((data || []).map((e) => e.choreography))))
-        .catch(() => {});
-    }
+    fetch(`${API_BASE_URL}/api/academy/my-courses/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setPurchasedIds(new Set((data || []).map((e) => e.choreography))))
+      .catch(() => {});
   }, [isAuthenticated]);
 
   const fetchChoreographies = useCallback(async () => {
@@ -245,6 +230,10 @@ function HomePage() {
           <Footer />
         </div>
       );
+    }
+
+    if (profileLoading && !profile && !profileError) {
+      return <Loader fullscreen label="Cargando..." />;
     }
 
     const { navItems, roleLabel } = getSidebarConfigForRole(profile?.role || 'student');

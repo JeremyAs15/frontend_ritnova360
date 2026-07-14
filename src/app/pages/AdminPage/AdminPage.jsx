@@ -4,6 +4,8 @@ import { Plus, AlertTriangle, CheckCircle, XCircle, X, Eye, EyeOff } from 'lucid
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import UsersTable from '../../components/UsersTable/UsersTable';
 import UsersFilters from '../../components/UsersFilters/UsersFilters';
+import Loader from '../../components/Loader/Loader';
+import { useProfile } from '../../context/ProfileContext';
 import './AdminPage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -23,7 +25,7 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
   const loadingTimerRef = useRef(null);
 
   const [formOpen, setFormOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', role: 'teacher', status: 'activo', password: '', confirmPassword: '', birth_date: '', phone_number: '', genre: '' });
+  const [form, setForm] = useState({ name: '', email: '', role: 'teacher', status: 'activo', password: '', confirmPassword: '', birth_date: '', phone_number: '', genre: '', document_type: '', n_documento: '' });
   const [errors, setErrors] = useState({});
   const [feedback, setFeedback] = useState(null);
   const [serverLoading, setServerLoading] = useState(false);
@@ -122,7 +124,7 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
 
   const closeForm = () => {
     setFormOpen(false);
-    setForm({ name: '', email: '', role: 'teacher', status: 'activo', password: '', confirmPassword: '', birth_date: '', phone_number: '', genre: '' });
+    setForm({ name: '', email: '', role: 'teacher', status: 'activo', password: '', confirmPassword: '', birth_date: '', phone_number: '', genre: '', document_type: '', n_documento: '' });
     setErrors({});
     setFeedback(null);
     setShowPassword(false);
@@ -163,6 +165,8 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
           birth_date: form.birth_date || null,
           phone_number: form.phone_number || '',
           genre: form.genre || '',
+          document_type: form.document_type || '',
+          n_documento: form.n_documento || '',
         }),
       });
       const data = await res.json();
@@ -333,6 +337,21 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
                   </select>
                 </div>
                 <div className="admin-field">
+                  <label className="admin-field__label">Tipo de documento</label>
+                  <select className="admin-field__input" value={form.document_type} onChange={e => setForm(c => ({ ...c, document_type: e.target.value }))}>
+                    <option value="">Seleccionar</option>
+                    <option value="CC">Cédula de Ciudadanía</option>
+                    <option value="CE">Cédula de Extranjería</option>
+                    <option value="NIT">NIT</option>
+                    <option value="TI">Tarjeta de Identidad</option>
+                    <option value="PASSPORT">Pasaporte</option>
+                  </select>
+                </div>
+                <div className="admin-field">
+                  <label className="admin-field__label">Número de documento</label>
+                  <input className="admin-field__input" type="text" value={form.n_documento} placeholder="Ej: 1234567890" onChange={e => setForm(c => ({ ...c, n_documento: e.target.value }))} />
+                </div>
+                <div className="admin-field">
                   <label className="admin-field__label">Contraseña</label>
                   <div className="admin-field__password-wrap">
                     <input className="admin-field__input" type={showPassword ? 'text' : 'password'} value={form.password} onChange={e => setForm(c => ({ ...c, password: e.target.value }))} />
@@ -455,21 +474,12 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
 export default function AdminPage() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const [profile, setProfile] = useState(null);
+  const { profile, profileLoading, profileError } = useProfile();
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
+    if (!localStorage.getItem('access_token')) {
       navigate('/login');
-      return;
     }
-
-    fetch(`${API_BASE_URL}/api/users/profile/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then(setProfile)
-      .catch(() => {}); // Si falla, el Sidebar cae a sus valores por defecto.
   }, [navigate]);
 
   const refreshAccessToken = useCallback(async () => {
@@ -504,6 +514,10 @@ export default function AdminPage() {
     if (response.status === 401) { redirectToLogin(); throw new Error('Sesión expirada.'); }
     return response;
   }, [redirectToLogin, refreshAccessToken]);
+
+  if (profileLoading && !profile && !profileError) {
+    return <Loader fullscreen label="Cargando..." />;
+  }
 
   const { navItems, roleLabel } = getSidebarConfigForRole(profile?.role);
   const fullName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email : 'Usuario';

@@ -21,6 +21,11 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
     email: '',
     password: '',
     confirmPassword: '',
+    phone_number: '',
+    birth_date: '',
+    genre: '',
+    document_type: '',
+    n_documento: '',
   });
 
   const [accepted, setAccepted] = useState(false);
@@ -76,7 +81,12 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
           first_name: form.nombres,
           last_name: form.apellidos,
           email: form.email,
-          password: form.password
+          password: form.password,
+          phone_number: form.phone_number,
+          birth_date: form.birth_date || null,
+          genre: form.genre,
+          document_type: form.document_type,
+          n_documento: form.n_documento,
         })
       });
 
@@ -85,7 +95,10 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
       if (response.ok) {
         setServerStatus({ loading: false, error: null, success: '¡Cuenta creada con éxito! Redirigiendo a inicio de sesión...' });
         // Limpiamos el formulario
-        setForm({ nombres: '', apellidos: '', email: '', password: '' });
+        setForm({
+          nombres: '', apellidos: '', email: '', password: '', confirmPassword: '',
+          phone_number: '', birth_date: '', genre: '', document_type: '', n_documento: '',
+        });
         setAccepted(false);
         setTimeout(() => onSubmit?.(form), 1500);
       } else {
@@ -166,6 +179,65 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
         placeholder="Correo electrónico"
         icon={emailIcon}
         error={errors.email}
+      />
+
+      <div className="form__row">
+        <InputField
+          label="Teléfono"
+          type="tel"
+          value={form.phone_number}
+          placeholder="Ej: 321 777 1114"
+          onChange={handleChange('phone_number')}
+        />
+        <InputField
+          label="Fecha de nacimiento"
+          type="date"
+          value={form.birth_date}
+          onChange={handleChange('birth_date')}
+        />
+      </div>
+
+      <div className="form__row">
+        <div className="input-field">
+          <label className="input-field__label">Género</label>
+          <div className="input-field__wrapper">
+            <select
+              className="input-field__input"
+              value={form.genre}
+              onChange={handleChange('genre')}
+            >
+              <option value="">Seleccionar</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="No binario">No binario</option>
+              <option value="Prefiero no decir">Prefiero no decir</option>
+            </select>
+          </div>
+        </div>
+        <div className="input-field">
+          <label className="input-field__label">Tipo de documento</label>
+          <div className="input-field__wrapper">
+            <select
+              className="input-field__input"
+              value={form.document_type}
+              onChange={handleChange('document_type')}
+            >
+              <option value="">Seleccionar</option>
+              <option value="CC">Cédula de Ciudadanía</option>
+              <option value="CE">Cédula de Extranjería</option>
+              <option value="NIT">NIT</option>
+              <option value="TI">Tarjeta de Identidad</option>
+              <option value="PASSPORT">Pasaporte</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <InputField
+        label="Número de documento"
+        value={form.n_documento}
+        placeholder="Ej: 1234567890"
+        onChange={handleChange('n_documento')}
       />
 
       <PasswordInput

@@ -1,20 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, ArrowLeft, CheckCircle, Sparkles, AlertCircle, Trash2, CreditCard, Landmark, X, User } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import { useCart } from '../../context/CartContext';
+import { useProfile } from '../../context/ProfileContext';
 import Loader from '../../components/Loader/Loader';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
 import './CartPage.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
 function CartPage() {
   const navigate = useNavigate();
   const { cartItems, cartTotal, formatCOP, cartError, cartLoading, cartCheckoutLoading, refreshCart, checkout, clearCart, removeFromCart } = useCart();
+  const { profile, profileLoading, profileError } = useProfile();
 
-  const [profile, setProfile] = useState(null);
-  const [profileError, setProfileError] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -44,72 +42,14 @@ function CartPage() {
   });
   const [paymentError, setPaymentError] = useState(null);
 
-  const refreshAccessToken = useCallback(async () => {
-    const refresh = localStorage.getItem('refresh_token');
-    if (!refresh) return null;
-
-    const res = await fetch(`${API_BASE_URL}/api/users/token/refresh/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh }),
-    });
-
-    if (!res.ok) return null;
-
-    const data = await res.json();
-    localStorage.setItem('access_token', data.access);
-    return data.access;
-  }, []);
-
-  const fetchWithAuth = useCallback(async (url, options = {}) => {
-    const accessToken = localStorage.getItem('access_token');
-    if (!accessToken) return null;
-
-    const defaultHeaders = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
-    let res = await fetch(url, { ...options, headers: { ...defaultHeaders, ...options.headers } });
-
-    if (res.status === 401) {
-      const newAccessToken = await refreshAccessToken();
-      if (!newAccessToken) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        navigate('/login');
-        return null;
-      }
-
-      res = await fetch(url, {
-        ...options,
-        headers: { ...defaultHeaders, Authorization: `Bearer ${newAccessToken}` },
-      });
-    }
-
-    return res;
-  }, [navigate, refreshAccessToken]);
-
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
+    if (!localStorage.getItem('access_token')) {
       navigate('/login');
       return;
     }
 
-    fetchWithAuth(`${API_BASE_URL}/api/users/profile/`)
-      .then((res) => {
-        if (!res) return null;
-        if (!res.ok) throw new Error('No se pudo cargar tu perfil.');
-        return res.json();
-      })
-      .then((data) => {
-        if (data) setProfile(data);
-      })
-      .catch((err) => setProfileError(err.message));
-
     refreshCart();
-  }, [navigate, refreshCart, fetchWithAuth]);
+  }, [navigate, refreshCart]);
 
   const handleOpenPaymentModal = () => {
     setPaymentError(null);
@@ -279,6 +219,10 @@ function CartPage() {
       navigate('/');
     }
   };
+
+  if (profileLoading && !profile && !profileError) {
+    return <Loader fullscreen label="Cargando..." />;
+  }
 
   const fallbackSidebar = getSidebarConfigForRole('student');
   const { navItems, roleLabel } = profile ? getSidebarConfigForRole(profile.role) : fallbackSidebar;

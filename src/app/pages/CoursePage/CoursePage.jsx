@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { COURSES } from '../../data/courses';
 import { ArrowLeft, Play, Clock, Users, Star, CheckCircle, XCircle } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useProfile } from '../../context/ProfileContext';
 import { getUserRoleFromToken } from '../../utils/auth';
 import Loader from '../../components/Loader/Loader';
 import ConfirmModal from '../../components/ConfirmModal/ConfirmModal';
@@ -66,7 +67,7 @@ function CoursePage() {
   const [removingFromCart, setRemovingFromCart] = useState(false);
   const [purchasedIds, setPurchasedIds] = useState(new Set());
   const [isAuthenticated] = useState(!!localStorage.getItem('access_token'));
-  const [profile, setProfile] = useState(null);
+  const { profile, profileLoading } = useProfile();
   const [collapsed, setCollapsed] = useState(false);
 
   const showToast = (message, type = 'success', action = null) => {
@@ -129,21 +130,14 @@ function CoursePage() {
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => setPurchasedIds(new Set((data || []).map((e) => e.choreography))))
       .catch(() => {});
-
-    fetch(`${API_BASE_URL}/api/users/profile/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => data && setProfile(data))
-      .catch(() => {});
   }, [refreshCart]);
 
-  if (loading) {
-    return <Loader label="Cargando curso..." fullscreen />;
-  }
+  let pageContent;
 
-  if (!course) {
-    return (
+  if (loading) {
+    pageContent = <Loader label="Cargando curso..." />;
+  } else if (!course) {
+    pageContent = (
       <div className="course-page__not-found">
         <ArrowLeft className="course-page__back-icon" />
         <Link to="/" className="course-page__back-link">
@@ -156,9 +150,8 @@ function CoursePage() {
         </Link>
       </div>
     );
-  }
-
-  const pageContent = (
+  } else {
+    pageContent = (
     <div className="course-page">
       <div className="course-page__main">
         <div className="course-page__breadcrumb">
@@ -316,10 +309,15 @@ function CoursePage() {
         </div>
       )}
     </div>
-  );
+    );
+  }
 
   if (!isAuthenticated) {
-    return pageContent;
+    return loading ? <Loader label="Cargando curso..." fullscreen /> : pageContent;
+  }
+
+  if (profileLoading && !profile) {
+    return <Loader fullscreen label="Cargando..." />;
   }
 
   const { navItems, roleLabel } = getSidebarConfigForRole(profile?.role);
