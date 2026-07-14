@@ -83,11 +83,11 @@ function AuthForm({ onSubmit, onGoogleSubmit, onLogin }) {
       const data = await response.json();
 
       if (response.ok) {
-        setServerStatus({ loading: false, error: null, success: '¡Cuenta creada con éxito! Ya puedes iniciar sesión.' });
+        setServerStatus({ loading: false, error: null, success: '¡Cuenta creada con éxito! Redirigiendo a inicio de sesión...' });
         // Limpiamos el formulario
         setForm({ nombres: '', apellidos: '', email: '', password: '' });
         setAccepted(false);
-        onSubmit?.(form);
+        setTimeout(() => onSubmit?.(form), 1500);
       } else {
         const errorMessages = Object.values(data).flat().join(' | ');
         setServerStatus({ loading: false, error: errorMessages, success: null });
