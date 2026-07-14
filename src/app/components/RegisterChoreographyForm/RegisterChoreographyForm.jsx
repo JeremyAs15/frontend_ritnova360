@@ -9,11 +9,11 @@ const GENRE_OPTIONS = ['Salsa', 'Bachata', 'Merengue', 'Reggaetón', 'Hip-Hop', 
 function RegisterChoreographyForm({
   form, onFormChange, clips, onClipChange, onAddClip, onRemoveClip,
   errors = {}, serverError = null, status = 'idle', onSubmit,
-  showLeadDancerSelect = false, teacherOptions = [],
+  showLeadDancerSelect = false, teacherOptions = [], submitText = "Registrar coreografía", 
 }) {
   return (
     <div className="form register-choreography-form">
-      <h1 className="form__title">Registrar coreografía</h1>
+      <h1 className="form__title">{submitText}</h1>
       <p className="form__subtitle">Completa los datos y sube los videos de la coreografía.</p>
 
       <div className="admin-modal__grid">
@@ -79,10 +79,7 @@ function RegisterChoreographyForm({
       />
 
       <div className="input-field">
-        <label className="input-field__label">
-          Descripción de la coreografía
-        </label>
-
+        <label className="input-field__label">Descripción de la coreografía</label>
         <textarea
           className="input-field__input"
           rows={3}
@@ -90,37 +87,22 @@ function RegisterChoreographyForm({
           onChange={onFormChange('description')}
           placeholder="Describe qué aprenderán los estudiantes..."
         />
-
-        {errors.description && (
-          <span className="input-field__error">
-            {errors.description}
-          </span>
-        )}
+        {errors.description && <span className="input-field__error">{errors.description}</span>}
       </div>
 
       <div className="input-field">
-        <label className="input-field__label">
-          Imagen de portada (Banner)
-        </label>
-
+        <label className="input-field__label">Imagen de portada (Banner)</label>
         <div className="register-choreography-form__file-wrapper">
           <label className="register-choreography-form__file-label">
             <Upload size={16} />
-            <span>
-              {form.image_file
-                ? form.image_file.name
-                : "Subir imagen de portada"}
+            <span className="file-name-truncate">
+              {form.image_file ? form.image_file.name : "Subir imagen de portada"}
             </span>
-
             <input
               type="file"
               accept="image/*"
               className="register-choreography-form__file-hidden"
-              onChange={(e) =>
-                onFormChange("image_file")({
-                  target: { value: e.target.files[0] },
-                })
-              }
+              onChange={(e) => onFormChange("image_file")({ target: { value: e.target.files[0] } })}
             />
           </label>
         </div>
@@ -140,7 +122,7 @@ function RegisterChoreographyForm({
               <label className="register-choreography-form__file-label">
                 <Upload size={16} />
                 <span className="file-name-truncate">
-                  {clip.video_file ? clip.video_file.name : "Seleccionar video"}
+                  {clip.video_file ? clip.video_file.name : (clip.video_url ? "Video guardado" : "Seleccionar video")}
                 </span>
                 <input
                   type="file"
@@ -167,7 +149,7 @@ function RegisterChoreographyForm({
 
       <div className="admin-modal__actions" style={{marginTop: '20px'}}>
           <button className="form__submit" onClick={onSubmit} disabled={status === 'loading'}>
-            {status === 'loading' ? 'Subiendo videos...' : 'Registrar coreografía'}
+            {status === 'loading' ? 'Procesando...' : submitText}
           </button>
       </div>
     </div>
