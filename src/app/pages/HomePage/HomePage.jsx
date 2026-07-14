@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
 import CourseCard from '../../components/CourseCard/CourseCard';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
+import Loader from '../../components/Loader/Loader';
 import { COURSES } from '../../data/courses';
 
 // Imágenes
@@ -171,9 +172,7 @@ function HomePage() {
         </div>
 
         {loading ? (
-          <div className="catalog__empty">
-            <p>Cargando coreografías...</p>
-          </div>
+          <Loader label="Cargando coreografías..." />
         ) : choreographies.length === 0 ? (
           <div className="catalog__empty">
             <span className="catalog__empty-icon">🕺</span>
@@ -225,9 +224,9 @@ function HomePage() {
             </div>
             <div className="hero__images">
               <div className="hero__img-grid">
-                <div className="hero__img hero__img--1" style={{backgroundColor: '#ddd'}}></div>
-                <div className="hero__img hero__img--2" style={{backgroundColor: '#ccc'}}></div>
-                <div className="hero__img hero__img--3" style={{backgroundColor: '#bbb'}}></div>
+                <img src={salsaImg} alt="Salsa" className="hero__img hero__img--1" />
+                <img src={bachataImg} alt="Bachata" className="hero__img hero__img--2" />
+                <img src={reggaetonImg} alt="Reggaetón" className="hero__img hero__img--3" />
               </div>
             </div>
           </section>

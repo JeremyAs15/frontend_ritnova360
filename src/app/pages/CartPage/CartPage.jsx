@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, ArrowLeft, CheckCircle, Sparkles, AlertCircle, Trash2, CreditCard, Landmark, X, User } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import { useCart } from '../../context/CartContext';
+import Loader from '../../components/Loader/Loader';
 import './CartPage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -276,9 +277,7 @@ function CartPage() {
           )}
 
           {cartLoading ? (
-            <div className="cart-empty-state">
-              <p className="cart-state-message">Cargando tu carrito...</p>
-            </div>
+            <Loader label="Cargando tu carrito..." />
           ) : cartItems.length === 0 ? (
             <div className="cart-empty-state">
               <div className="cart-empty-icon-wrap">

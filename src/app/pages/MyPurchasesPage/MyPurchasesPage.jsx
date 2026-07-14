@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, ArrowLeft, AlertCircle, Play } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
+import Loader from '../../components/Loader/Loader';
 import './MyPurchasesPage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -172,9 +173,7 @@ function MyPurchasesPage() {
           )}
 
           {loading ? (
-            <div className="purchases-loading-state">
-              <p className="purchases-state-message">Cargando tus compras...</p>
-            </div>
+            <Loader label="Cargando tus compras..." />
           ) : purchases.length === 0 ? (
             <div className="purchases-empty-state">
               <div className="purchases-empty-icon-wrap">

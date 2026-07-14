@@ -5,12 +5,13 @@ import DonutChart from '../../components/charts/DonutChart';
 import HorizontalBarChart from '../../components/charts/HorizontalBarChart';
 import DateRangeFilter from '../../components/DateRangeFilter/DateRangeFilter';
 import EmptyState from '../../components/EmptyState/EmptyState';
+import Loader from '../../components/Loader/Loader';
 import { formatCurrencyCompact, formatCurrencyFull } from '../../components/charts/chartTheme';
 
 /** Dashboard de Administrador y Director (misma vista, mismos datos del backend). */
 function AdminDirectorDashboard({ data, loading, range, onRangeChange }) {
   if (!data) {
-    return <p className="dashboard-state-message">Cargando indicadores...</p>;
+    return <Loader label="Cargando indicadores..." />;
   }
 
   const { kpis, ingresos_por_mes: ingresosPorMes, ventas_por_genero: ventasPorGenero, top_coreografias: topCoreografias } = data;

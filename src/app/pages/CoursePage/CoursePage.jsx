@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { COURSES } from '../../data/courses';
 import { ArrowLeft, Play, Clock, Users, Star, CheckCircle, XCircle } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import Loader from '../../components/Loader/Loader';
 import './CoursePage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -98,12 +99,7 @@ function CoursePage() {
   }, [refreshCart]);
 
   if (loading) {
-    return (
-      <div className="course-page__loading">
-        <div className="spinner" />
-        <p>Cargando curso...</p>
-      </div>
-    );
+    return <Loader label="Cargando curso..." fullscreen />;
   }
 
   if (!course) {

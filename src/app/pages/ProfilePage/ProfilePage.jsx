@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Calendar, Clock, ShoppingBag, User } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import InputField from '../../components/InputField/InputField';
+import Loader from '../../components/Loader/Loader';
 import './ProfilePage.css';
 
 const DANCE_GENRES = ['Salsa', 'Bachata', 'Hip-Hop', 'Reggaetón', 'Zumba', 'Dancehall'];
@@ -208,7 +209,7 @@ function ProfilePage() {
     <div className="profile-layout">
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
       <main className="profile-main">
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '1.05rem' }}>Cargando perfil...</p>
+        <Loader label="Cargando perfil..." />
       </main>
     </div>
   );

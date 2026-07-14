@@ -4,6 +4,7 @@ import BarChart from '../../components/charts/BarChart';
 import GaugeChart from '../../components/charts/GaugeChart';
 import DateRangeFilter from '../../components/DateRangeFilter/DateRangeFilter';
 import EmptyState from '../../components/EmptyState/EmptyState';
+import Loader from '../../components/Loader/Loader';
 
 const RATING_MAX = 5;
 
@@ -14,7 +15,7 @@ const RATING_MAX = 5;
  */
 function TeacherDashboard({ data, loading, range, onRangeChange }) {
   if (!data) {
-    return <p className="dashboard-state-message">Cargando indicadores...</p>;
+    return <Loader label="Cargando indicadores..." />;
   }
 
   const { kpis, ventas_por_mes: ventasPorMes } = data;

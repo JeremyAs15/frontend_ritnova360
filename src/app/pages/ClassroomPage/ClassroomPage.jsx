@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, CheckCircle, Award, Film, Image as ImageIcon, Sparkles } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import VideoPlayer from '../../components/VideoPlayer/VideoPlayer';
+import Loader from '../../components/Loader/Loader';
 import './ClassroomPage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -93,12 +94,7 @@ function ClassroomPage() {
   };
 
   if (loading) {
-    return (
-      <div className="classroom-loading">
-        <div className="spinner" />
-        <p>Abriendo tu aula virtual...</p>
-      </div>
-    );
+    return <Loader label="Abriendo tu aula virtual..." fullscreen />;
   }
 
   if (error || !course) {
