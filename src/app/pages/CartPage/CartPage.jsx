@@ -226,7 +226,7 @@ function CartPage() {
     setCheckoutCompletedItems([]);
     setCheckoutTotal(0);
     if (redirectTo === 'dashboard') {
-      navigate('/dashboard');
+      navigate('/mis-compras');
     } else {
       navigate('/');
     }
@@ -606,7 +606,7 @@ function CartPage() {
                 className="checkout-action-btn checkout-action-btn--primary"
                 onClick={() => handleCloseSuccessModal('dashboard')}
               >
-                Ir a mi panel (Dashboard)
+                Ir a mi biblioteca
               </button>
               <button 
                 className="checkout-action-btn checkout-action-btn--secondary"
