@@ -307,3 +307,26 @@
     grid-template-columns: 1fr;
   }
 }
+
+.purchases-card__watch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px;
+  background-color: #ff6b35;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.purchases-card__watch-btn:hover {
+  background-color: #e04f1a;
+}

@@ -20,6 +20,11 @@ function ProfilePage() {
   const [collapsed, setCollapsed] = useState(false);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    comprados: 0,
+    horas: '0h',
+    vistos: 0
+  });
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
@@ -28,6 +33,7 @@ function ProfilePage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [passwordForm, setPasswordForm] = useState({old_password: '', new_password: '', confirm_password: ''});
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -48,6 +54,28 @@ function ProfilePage() {
           birth_date:   data.birth_date   || '',
           genre:        data.genre        || '',
         });
+
+        if (data.role === 'student') {
+          fetch(`${import.meta.env.VITE_API_URL}/api/academy/dashboard/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+            .then(res => (res.ok ? res.json() : null))
+            .then(dashData => {
+              if (dashData && dashData.kpis) {
+                const totalVistos = dashData.kpis.videos_vistos || 0;
+                // Estimación aproximada: cada video visto equivale a 0.5 horas (30 minutos) de estudio/práctica
+                const horasCalculadas = (totalVistos * 0.5).toFixed(1);
+                
+                setStats({
+                  comprados: dashData.kpis.coreografias_compradas || 0,
+                  horas: `${horasCalculadas}h`,
+                  vistos: totalVistos
+                });
+              }
+            })
+            .catch(() => {});
+        }
+
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
@@ -228,10 +256,11 @@ function ProfilePage() {
                 <div className="profile-avatar-ring" />
               </div>
 
+              {/* Renderizar dinámicamente estadísticas reales del estudiante */}
               <div className="profile-stats">
                 <StatCard icon={Calendar}    label="Fecha de ingreso"  value={joinDate} />
-                <StatCard icon={Clock}       label="Horas de práctica" value="0h" />
-                <StatCard icon={ShoppingBag} label="Cursos comprados"  value={0} />
+                <StatCard icon={Clock}       label="Horas de práctica" value={stats.horas} />
+                <StatCard icon={ShoppingBag} label="Cursos comprados"  value={stats.comprados} />
               </div>
             </div>
 

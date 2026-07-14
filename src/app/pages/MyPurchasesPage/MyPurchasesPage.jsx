@@ -197,7 +197,7 @@ function MyPurchasesPage() {
                 <div
                   key={item.id}
                   className="purchases-card"
-                  onClick={() => navigate(`/curso/${item.choreography}`)}
+                  onClick={() => navigate(`/clase/${item.choreography}`)}
                 >
                   <div className="purchases-card__image-wrap">
                     <img
@@ -208,7 +208,7 @@ function MyPurchasesPage() {
                     <span className="purchases-card__genre">{item.genre}</span>
                     <div className="purchases-card__overlay">
                       <Play size={20} />
-                      <span>Ver curso</span>
+                      <span>Ir al reproductor</span>
                     </div>
                   </div>
 
@@ -239,6 +239,16 @@ function MyPurchasesPage() {
                         Adquirido el {formatDate(item.date)}
                       </p>
                     )}
+                    {/* Botón explícito para ver la clase solicitado por el usuario */}
+                    <button 
+                      className="purchases-card__watch-btn"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Evita el doble disparo del evento onClick padre
+                        navigate(`/clase/${item.choreography}`);
+                      }}
+                    >
+                      <Play size={14} fill="currentColor" /> Iniciar clase
+                    </button>
                   </div>
                 </div>
               ))}
