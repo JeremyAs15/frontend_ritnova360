@@ -259,9 +259,13 @@ function ProfilePage() {
 
               {/* Renderizar dinámicamente estadísticas reales del estudiante */}
               <div className="profile-stats">
-                <StatCard icon={Calendar}    label="Fecha de ingreso"  value={joinDate} />
-                <StatCard icon={Clock}       label="Horas de práctica" value={stats.horas} />
-                <StatCard icon={ShoppingBag} label="Cursos comprados"  value={stats.comprados} />
+                <StatCard icon={Calendar} label="Fecha de ingreso" value={joinDate} />
+                {profile.role === 'student' && (
+                  <>
+                    <StatCard icon={Clock}       label="Horas de práctica" value={stats.horas} />
+                    <StatCard icon={ShoppingBag} label="Cursos comprados"  value={stats.comprados} />
+                  </>
+                )}
               </div>
             </div>
 

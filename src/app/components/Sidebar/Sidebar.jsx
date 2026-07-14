@@ -1,7 +1,8 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, ShoppingCart, Library, User, LogOut, ChevronLeft, ChevronRight, Users, ClipboardList, Settings } from 'lucide-react';
 import logoLargo from '/logoLargo.png';
 import { useCart } from '../../context/CartContext';
+import { logout } from '../../utils/auth';
 import './Sidebar.css';
 
 // Ítems por defecto para estudiantes
@@ -60,7 +61,6 @@ function getSidebarConfigForRole(role) {
 export { STUDENT_NAV_ITEMS, ADMIN_NAV_ITEMS, STAFF_NAV_ITEMS, getSidebarConfigForRole };
 
 function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudiante', navItems }) {
-  const navigate = useNavigate();
   const { cartItems } = useCart();
   const cartCount = cartItems?.length || 0;
 
@@ -72,12 +72,6 @@ function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudi
     .slice(0, 2)
     .join('')
     .toUpperCase();
-
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    navigate('/login');
-  };
 
   return (
     <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
@@ -142,7 +136,7 @@ function Sidebar({ collapsed, onToggle, userName = 'Usuario', userRole = 'Estudi
           </div>
         )}
         {!collapsed && (
-          <button className="sidebar__logout" onClick={handleLogout} aria-label="Cerrar sesión">
+          <button className="sidebar__logout" onClick={logout} aria-label="Cerrar sesión">
             <LogOut size={16} />
           </button>
         )}

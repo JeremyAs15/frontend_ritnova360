@@ -16,9 +16,9 @@ import { useNavigate } from 'react-router-dom';
 function SignUpPageWrapper() {
   const navigate = useNavigate();
   return (
-    <SignUpPage 
-      onLogin={() => navigate('/login')} 
-      onSignUp={() => navigate('/')} 
+    <SignUpPage
+      onLogin={() => navigate('/login')}
+      onSignUp={() => navigate('/login')}
     />
   );
 }

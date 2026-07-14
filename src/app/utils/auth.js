@@ -33,5 +33,5 @@ export function logout() {
   localStorage.removeItem('role');
   
   window.dispatchEvent(new Event('auth-change'));
-  window.location.href = '/login';
+  window.location.href = '/';
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { useGoogleLogin } from '@react-oauth/google';
 import InputField from '../InputField/InputField';
@@ -13,11 +13,13 @@ import './LoginForm.css';
  *  - onGoogleSubmit    {function}  Recibe el token de autenticación de Google
  *  - onSignUp          {function}  Navegar al registro
  *  - onForgotPassword  {function}  Navegar a recuperar contraseña
+ *  - loading           {boolean}   Deshabilita el formulario mientras se autentica
  */
-function LoginForm({ onSubmit, onGoogleSubmit, onSignUp, onForgotPassword }) {
+function LoginForm({ onSubmit, onGoogleSubmit, onSignUp, onForgotPassword, loading = false }) {
   const [form, setForm] = useState({ email: '', password: '' });
   const [captchaToken, setCaptchaToken] = useState(null);
   const [errors, setErrors] = useState({});
+  const turnstileRef = useRef(null);
 
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
 
@@ -53,11 +55,16 @@ function LoginForm({ onSubmit, onGoogleSubmit, onSignUp, onForgotPassword }) {
       return;
     }
     
-    onSubmit?.({ 
-      email: form.email, 
-      password: form.password, 
-      captcha_token: captchaToken 
+    onSubmit?.({
+      email: form.email,
+      password: form.password,
+      captcha_token: captchaToken
     });
+
+    // Los tokens de Turnstile son de un solo uso: se piden uno nuevo
+    // para que un reintento no reenvíe un token ya consumido por el backend.
+    turnstileRef.current?.reset();
+    setCaptchaToken(null);
   };
 
   const handleGoogleLogin = useGoogleLogin({
@@ -110,6 +117,7 @@ function LoginForm({ onSubmit, onGoogleSubmit, onSignUp, onForgotPassword }) {
 
       <div className="form__captcha-container" style={{ marginBottom: '15px', display: 'flex', justifyContent: 'center' }}>
         <Turnstile
+          ref={turnstileRef}
           siteKey={siteKey}
           onSuccess={(token) => {
             setCaptchaToken(token);
@@ -126,8 +134,8 @@ function LoginForm({ onSubmit, onGoogleSubmit, onSignUp, onForgotPassword }) {
         </span>
       )}
       
-      <button type="submit" className="form__submit">
-        Iniciar Sesión <span>→</span>
+      <button type="submit" className="form__submit" disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
+        {loading ? 'Iniciando sesión...' : <>Iniciar Sesión <span>→</span></>}
       </button>
 
       <div className="form__divider">
@@ -136,7 +144,7 @@ function LoginForm({ onSubmit, onGoogleSubmit, onSignUp, onForgotPassword }) {
         <span />
       </div>
 
-      <button type="button" className="form__google" onClick={() => handleGoogleLogin()}>
+      <button type="button" className="form__google" onClick={() => handleGoogleLogin()} disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
         <GoogleIcon /> Google
       </button>
 
