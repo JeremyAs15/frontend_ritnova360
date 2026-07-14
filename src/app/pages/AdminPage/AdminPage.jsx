@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, AlertTriangle, CheckCircle, XCircle, X } from 'lucide-react';
+import { Plus, AlertTriangle, CheckCircle, XCircle, X, Eye, EyeOff } from 'lucide-react';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import UsersTable from '../../components/UsersTable/UsersTable';
 import UsersFilters from '../../components/UsersFilters/UsersFilters';
@@ -23,10 +23,12 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
   const loadingTimerRef = useRef(null);
 
   const [formOpen, setFormOpen] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', role: 'teacher', status: 'activo', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({ name: '', email: '', role: 'teacher', status: 'activo', password: '', confirmPassword: '', birth_date: '', phone_number: '', genre: '' });
   const [errors, setErrors] = useState({});
   const [feedback, setFeedback] = useState(null);
   const [serverLoading, setServerLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [editFormOpen, setEditFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -120,9 +122,11 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
 
   const closeForm = () => {
     setFormOpen(false);
-    setForm({ name: '', email: '', role: 'teacher', status: 'activo', password: '', confirmPassword: '' });
+    setForm({ name: '', email: '', role: 'teacher', status: 'activo', password: '', confirmPassword: '', birth_date: '', phone_number: '', genre: '' });
     setErrors({});
     setFeedback(null);
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const openEditForm = (user) => {
@@ -151,7 +155,15 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
       const res = await fetchWithAuth(`${API_BASE_URL}/api/users/internal/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ first_name, last_name, email: form.email.trim().toLowerCase(), password: form.password, role: form.role }),
+        body: JSON.stringify({
+          first_name, last_name,
+          email: form.email.trim().toLowerCase(),
+          password: form.password,
+          role: form.role,
+          birth_date: form.birth_date || null,
+          phone_number: form.phone_number || '',
+          genre: form.genre || '',
+        }),
       });
       const data = await res.json();
       if (res.ok) { setUsers(prev => [...prev, normalizeUser(data)]); closeForm(); showToast('success', 'Usuario creado con éxito.'); }
@@ -218,9 +230,9 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
       {/* Encabezado */}
       <div className="admin-header">
         <div>
-          <h1 className="admin-header__title">Usuarios internos</h1>
+          <h1 className="admin-header__title">Usuarios</h1>
           <p className="admin-header__subtitle">
-            Administra administradores, directores y profesores · {filtered.length}
+            Administra administradores, directores, profesores y estudiantes · {filtered.length}
           </p>
         </div>
         <button className="admin-btn admin-btn--primary" onClick={() => setFormOpen(true)}>
@@ -303,13 +315,41 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
                   </select>
                 </div>
                 <div className="admin-field">
+                  <label className="admin-field__label">Fecha de nacimiento</label>
+                  <input className="admin-field__input" type="date" value={form.birth_date} onChange={e => setForm(c => ({ ...c, birth_date: e.target.value }))} />
+                </div>
+                <div className="admin-field">
+                  <label className="admin-field__label">Teléfono</label>
+                  <input className="admin-field__input" type="tel" value={form.phone_number} placeholder="Ej: 321 777 1114" onChange={e => setForm(c => ({ ...c, phone_number: e.target.value }))} />
+                </div>
+                <div className="admin-field">
+                  <label className="admin-field__label">Género</label>
+                  <select className="admin-field__input" value={form.genre} onChange={e => setForm(c => ({ ...c, genre: e.target.value }))}>
+                    <option value="">Seleccionar</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="No binario">No binario</option>
+                    <option value="Prefiero no decir">Prefiero no decir</option>
+                  </select>
+                </div>
+                <div className="admin-field">
                   <label className="admin-field__label">Contraseña</label>
-                  <input className="admin-field__input" type="password" value={form.password} onChange={e => setForm(c => ({ ...c, password: e.target.value }))} />
+                  <div className="admin-field__password-wrap">
+                    <input className="admin-field__input" type={showPassword ? 'text' : 'password'} value={form.password} onChange={e => setForm(c => ({ ...c, password: e.target.value }))} />
+                    <button type="button" className="admin-field__password-toggle" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                   {errors.password && <span className="admin-field__error">{errors.password}</span>}
                 </div>
                 <div className="admin-field">
                   <label className="admin-field__label">Confirmar contraseña</label>
-                  <input className="admin-field__input" type="password" value={form.confirmPassword} onChange={e => setForm(c => ({ ...c, confirmPassword: e.target.value }))} />
+                  <div className="admin-field__password-wrap">
+                    <input className="admin-field__input" type={showConfirmPassword ? 'text' : 'password'} value={form.confirmPassword} onChange={e => setForm(c => ({ ...c, confirmPassword: e.target.value }))} />
+                    <button type="button" className="admin-field__password-toggle" onClick={() => setShowConfirmPassword(v => !v)} aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                   {errors.confirmPassword && <span className="admin-field__error">{errors.confirmPassword}</span>}
                 </div>
               </div>
@@ -353,6 +393,7 @@ function AdminUsers({ fetchWithAuth, currentRole }) {
               <div className="admin-field">
                 <label className="admin-field__label">Rol</label>
                 <select className="admin-field__input" value={editForm.role} onChange={e => setEditForm(c => ({ ...c, role: e.target.value }))}>
+                  <option value="student">Estudiante</option>
                   <option value="teacher">Profesor</option>
                   <option value="admin">Administrador</option>
                   <option value="director">Director</option>

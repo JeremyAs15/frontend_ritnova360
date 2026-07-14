@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, ShoppingCart, Library, User, LogOut, ChevronLeft, ChevronRight, Users, ClipboardList, Settings } from 'lucide-react';
+import { LayoutDashboard, BookOpen, ShoppingCart, Library, User, LogOut, ChevronLeft, ChevronRight, Users, ClipboardList } from 'lucide-react';
 import logoLargo from '/logoLargo.png';
 import { useCart } from '../../context/CartContext';
 import { logout } from '../../utils/auth';
@@ -17,9 +17,8 @@ const STUDENT_NAV_ITEMS = [
 // Ítems para admin / director
 const ADMIN_NAV_ITEMS = [
   { title: 'Dashboard',              url: '/dashboard',              icon: LayoutDashboard },
-  { title: 'Usuarios internos',      url: '/admin/users',            icon: Users           },
-  { title: 'Catálogo coreografías',  url: '/admin/choreographies',   icon: ClipboardList   },
-  { title: 'Panel servicios',        url: '/admin/settings',         icon: Settings        },
+  { title: 'Usuarios',      url: '/admin/users',            icon: Users           },
+  { title: 'Catálogo coreografías',  url: '/coreografias/nueva',   icon: ClipboardList   },
 ];
 
 // Ítems para profesor y director (ambos gestionan coreografías, ver academy/services.py → create_choreography)
@@ -31,7 +30,7 @@ const STAFF_NAV_ITEMS = [
 
 const DIRECTOR_NAV_ITEMS = [
   { title: 'Dashboard',             url: '/dashboard',          icon: LayoutDashboard },
-  { title: 'Usuarios internos',     url: '/admin/users',        icon: Users           },
+  { title: 'Usuarios',     url: '/admin/users',        icon: Users           },
   { title: 'Gestión Coreografías',  url: '/coreografias/nueva', icon: ClipboardList   }, 
   { title: 'Mi perfil',             url: '/perfil',             icon: User            },
 ];

@@ -3,10 +3,12 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { COURSES } from '../../data/courses';
 import { ArrowLeft, Play, Clock, Users, Star, CheckCircle, XCircle } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { getUserRoleFromToken } from '../../utils/auth';
 import Loader from '../../components/Loader/Loader';
 import './CoursePage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const STAFF_ROLES = ['admin', 'director', 'teacher'];
 
 function mapAPIToCourse(ch) {
   const clips = ch.video_clips || [];
@@ -52,6 +54,8 @@ function CoursePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, cartAdding, isInCart, refreshCart } = useCart();
+  const role = getUserRoleFromToken(localStorage.getItem('access_token')) ?? localStorage.getItem('role');
+  const canPurchase = !STAFF_ROLES.includes(role);
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
@@ -197,19 +201,23 @@ function CoursePage() {
                 <span className="course-hero__card-price-currency">$</span>
                 <span className="course-hero__card-price-amount">{course.price}</span>
               </p>
-              <button
-                className="course-hero__card-btn course-hero__card-btn--primary"
-                disabled={cartAdding || isInCart(course.id)}
-                onClick={async () => {
-                  await addToCart(course.id);
-                  showToast('Coreografía agregada al carrito');
-                }}
-              >
-                {cartAdding ? 'Agregando...' : isInCart(course.id) ? 'Ya está en el carrito' : 'Agregar al carrito'}
-              </button>
-              <p className="course-hero__card-guarantee">
-                Cancelación gratuita hasta 7 días
-              </p>
+              {canPurchase && (
+                <>
+                  <button
+                    className="course-hero__card-btn course-hero__card-btn--primary"
+                    disabled={cartAdding || isInCart(course.id)}
+                    onClick={async () => {
+                      await addToCart(course.id);
+                      showToast('Coreografía agregada al carrito');
+                    }}
+                  >
+                    {cartAdding ? 'Agregando...' : isInCart(course.id) ? 'Ya está en el carrito' : 'Agregar al carrito'}
+                  </button>
+                  <p className="course-hero__card-guarantee">
+                    Cancelación gratuita hasta 7 días
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>

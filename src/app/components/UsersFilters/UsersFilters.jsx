@@ -19,6 +19,7 @@ function UsersFilters({ q, roleF, statusF, onSearchChange, onRoleChange, onStatu
           <option value="admin">Administrador</option>
           <option value="director">Director</option>
           <option value="teacher">Profesor</option>
+          <option value="student">Estudiante</option>
         </select>
 
         <select value={statusF} onChange={onStatusChange} className="rounded-xl border border-slate-200 bg-white px-3 py-3 outline-none focus:border-orange-400">
