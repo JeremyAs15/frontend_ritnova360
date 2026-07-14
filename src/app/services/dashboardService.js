@@ -33,3 +33,23 @@ export async function getDashboardData(role, { fechaInicio, fechaFin } = {}) {
 
   return response.json();
 }
+
+/**
+ * Cantidad de estudiantes registrados (GET /api/users/students/count/).
+ * Solo autorizado para admin/director/superuser.
+ * Retorna { total_registrados, activos }.
+ */
+export async function getStudentsCount() {
+  const token = localStorage.getItem('access_token');
+
+  const response = await fetch(`${API_BASE_URL}/api/users/students/count/`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.detail || 'No se pudo cargar la cantidad de estudiantes.');
+  }
+
+  return response.json();
+}

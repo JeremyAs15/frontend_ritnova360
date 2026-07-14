@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar, { getSidebarConfigForRole } from '../../components/Sidebar/Sidebar';
 import Loader from '../../components/Loader/Loader';
-import { getDashboardData } from '../../services/dashboardService';
+import { getDashboardData, getStudentsCount } from '../../services/dashboardService';
 import AdminDirectorDashboard from './AdminDirectorDashboard';
 import TeacherDashboard from './TeacherDashboard';
 import StudentDashboard from './StudentDashboard';
@@ -27,6 +27,7 @@ function DashboardPage() {
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState(null);
   const [range, setRange] = useState(null);
+  const [studentsCount, setStudentsCount] = useState(null);
 
   // El JWT de este backend no trae el rol en el payload, así que se obtiene
   // del mismo endpoint de perfil que ya usa ProfilePage.
@@ -67,6 +68,14 @@ function DashboardPage() {
     fetchDashboard();
   }, [profile?.role, range]);
 
+  useEffect(() => {
+    if (profile?.role !== 'admin' && profile?.role !== 'director') return;
+
+    getStudentsCount()
+      .then(setStudentsCount)
+      .catch(() => setStudentsCount(null));
+  }, [profile?.role]);
+
   if (profileError) {
     return (
       <div className="dashboard-layout">
@@ -105,6 +114,7 @@ function DashboardPage() {
             loading={dashboardLoading}
             range={range}
             onRangeChange={setRange}
+            studentsCount={studentsCount}
           />
         );
       case 'teacher':
